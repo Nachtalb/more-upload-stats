@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Nicotine+ - Upload Statistics</title>
+  <meta name="description" content="Nicotine+ Upload Statistics">
+  <meta name="author" content="Nachtalb - https://github.com/Nachtalb">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="{BASE}css/main.css">
+  <link rel="stylesheet" href="{BASE}css/normalize.css">
+  <link rel="stylesheet" href="{BASE}css/skeleton.css">
+
+  <!-- <link rel="icon" type="image/png" href="{BASE}images/favicon.png"> -->
+  <style>
+    .icon-contrast {{ background-image: url('file:///{BASE}images/contrast.svg'); }}
+  </style>
+</head>
+<body class="{THEME}">
+
+  <div class="container">
+    <div class="row">
+      <div class="column" style="margin-top: 5%">
+        <h1 id="top">
+          Upload Statistics <small>{date}</small>
+          <span class='icon-contrast' title='Change Theme' onclick="document.body.classList.toggle('dark')"></span>
+        </h1>
+        <p>Go to <a href='#Summary'>Summary</a> | <a href='#UserStats'>User Statistics</a> | <a href='#FileStats'>File Statistics</a></p>
+
+        <p>Download JSON data: {stats_link}</p>
+
+        <h2 id="Summary">Summary</h2>
+        {summary}
+
+        <h2 id="UserStats">User Statistics</h2>
+        <table class="sortable">
+          <tr>
+            <th>User</th>
+            <th>Total Files</th>
+            <th>Total Bytes</th>
+            <th>Last File</th>
+          </tr>
+          {userstats}
+        </table>
+        <br>
+
+        <h2 id="FileStats">File Statistics</h2>
+        <table class="sortable">
+          <tr>
+            <th>File</th>
+            <th>Total Uploads</th>
+            <th>Total Bytes</th>
+            <th>Last User</th>
+          </tr>
+          {filestats}
+        </table>
+
+        <p>Go to <a href="#top">Top</a> | <a href='#Summary'>Summary</a> | <a href='#UserStats'>User Statistics</a> | <a href='#FileStats'>File Statistics</a></p>
+
+        <hr>
+
+        <p>Plugin created by <a target="_blank" href="https://github.com/Nachtalb">Nachtalb</a><p>
+        <p><small>
+          Created with:
+          <a href="http://getskeleton.com/" target="_blank">Skeleton</a> |
+          <a href="https://www.kryogenix.org/code/browser/sorttable/" target="_blank">sorttable</a>
+          <br/>
+          Icons made by <a href="https://www.flaticon.com/authors/smartline" title="Smartline">Smartline</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+        </small></p>
+      </div>
+    </div>
+  </div>
+  <script type="application/javascript" src="{BASE}js/sorttable.js"></script>
+</body>
+</html>

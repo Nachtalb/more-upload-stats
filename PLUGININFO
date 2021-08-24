@@ -1,0 +1,4 @@
+Version="1.0.0"
+Authors=['Nachtalb']
+Name="Upload Statistics"
+Description="Collect more detailed upload statistics.\n\nTo open the statistics use the command \"/upstats\"\n\nAuthor: https://github.com/Nachtalb\nSource: https://github.com/Nachtalb/more-upload-stats"
