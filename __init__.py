@@ -190,7 +190,7 @@ class Plugin(BasePlugin):
         html = ''
         for real_path, file in sorted(self.stats['file'].items(), key=lambda i: i[1]['total'], reverse=True):
             name = a(Path(real_path).name,
-                     title='RP: {real_path}\nVP: {file["virtual_path"]}',
+                     title=f'RP: {real_path}\nVP: {file["virtual_path"]}',
                      href='file:///' + real_path,
                      target='_blank')
 
