@@ -32,6 +32,12 @@ Contributing
 
 Pull requests are welcome.
 
+Credits
+-------
+
+Created with: `Skeleton`_ | `sorttable`_
+Icons made by `Smartline`_ from `www.flaticon.com`_
+
 License
 -------
 
@@ -39,5 +45,8 @@ License
 
 .. _Nicotine+: https://nicotine-plus.github.io/nicotine-plus/
 .. _release: https://github.com/Nachtalb/more-upload-stats/releases/latest
+.. _Skeleton: http://getskeleton.com/
+.. _sorttable: https://www.kryogenix.org/code/browser/sorttable/
+.. _smartline: https://www.flaticon.com/authors/smartline
+.. _www.flaticon.com: https://www.flaticon.com/
 .. _MIT: https://github.com/Nachtalb/more-upload-stats/blob/main/LICENSE
-
