@@ -264,10 +264,10 @@ class Plugin(BasePlugin):
     def ranking(self, data, size=5):
         html = ''
         data = sorted(data, key=lambda i: i[1], reverse=True)
-        for index in range(1, size + 1):
+        for index in range(size):
             title = score = '-'
             link_id = None
-            if len(data) >= index:
+            if len(data) >= index + 1:
                 title, score, link_id = data[index]
             if link_id:
                 html += li(a(mark(span(title)) + small(score), href=link_id))
