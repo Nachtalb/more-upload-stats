@@ -4,7 +4,6 @@ import hashlib
 import json
 from pathlib import Path
 from statistics import mean, median
-from tempfile import NamedTemporaryFile
 import webbrowser
 
 from pynicotine.pluginsystem import BasePlugin, returncode
@@ -53,6 +52,7 @@ class Plugin(BasePlugin):
     __name__ = 'UploadStats'
     settings = {
         'stats_file': str(BASE_PATH / 'stats.json'),
+        'stats_html_file': str(BASE_PATH / 'index.html'),
         'dark_theme': True,
         'threshold_auto': True,
         'threshold_file': 2,
@@ -60,7 +60,12 @@ class Plugin(BasePlugin):
     }
     metasettings = {
         'stats_file': {
-            'description': 'Statistics file',
+            'description': 'Statistics file (data raw)',
+            'type': 'file',
+            'chooser': 'file',
+        },
+        'stats_html_file': {
+            'description': 'Statistics file (data representation)',
             'type': 'file',
             'chooser': 'file',
         },
@@ -311,9 +316,8 @@ class Plugin(BasePlugin):
         except ValueError:
             thresholds = []
 
-        with NamedTemporaryFile(suffix='.html', mode='w', delete=False, encoding='utf-8') as file:
-            file.write(self.build_html(*thresholds))
-            webbrowser.open(file.name)
+        Path(self.settings['stats_html_file']).write_text(self.build_html(*thresholds), 'utf-8')
+        webbrowser.open(self.settings['stats_html_file'])
         return returncode['zap']
 
     def reset_stats(self, *_):
