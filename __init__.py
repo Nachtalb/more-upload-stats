@@ -25,6 +25,10 @@ def tagger(tagname):
 
 abbr = tagger('abbr')
 a = tagger('a')
+li = tagger('li')
+mark = tagger('mark')
+small = tagger('small')
+span = tagger('span')
 
 
 def readable_size(num, suffix='B'):
@@ -220,9 +224,30 @@ class Plugin(BasePlugin):
                  target='_blank',
                  download=name)
 
+    def ranking(self, data, size=5):
+        html = ''
+        data = sorted(data, key=lambda i: i[1], reverse=True)
+        for index in range(1, size + 1):
+            title = score = '-'
+            link_id = None
+            if len(data) >= index:
+                title, score, link_id = data[index]
+            if link_id:
+                html += li(a(mark(span(title)) + small(score), href=link_id))
+            else:
+                html += li(mark(span(title)) + small(score))
+        return html
+
+    def user_ranking(self):
+        return self.ranking(tuple(map(lambda i: (i[0], i[1]['total'], '#user-' + id_string(i[0])),
+                                      self.stats['user'].items())))
+
+    def file_ranking(self):
+        return self.ranking(tuple(map(lambda i: (Path(i[0]).name, i[1]['total'], '#file-' + id_string(i[0])),
+                                      self.stats['file'].items())))
+
     def build_html(self):
         template = (BASE_PATH / 'template.html').read_text()
-
         info = {
             'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'BASE': str(BASE_PATH).replace('\\', '/') + '/',
@@ -231,6 +256,8 @@ class Plugin(BasePlugin):
             'summary': self.summary(),
             'stats_link': self.stats_link(),
             'THEME': 'dark' if self.settings['dark_theme'] else '',
+            'userranking': self.user_ranking(),
+            'fileranking': self.file_ranking(),
         }
         return template.format(**info)
 
