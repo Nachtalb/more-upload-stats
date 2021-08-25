@@ -29,6 +29,8 @@ Usage
 
 Type ``/upstats`` into a chat message and hit enter.
 
+Type ``/upstats-reset`` to reset the statistics (a backup will be created).
+
 There are also variouse settings that you can adjust: *Settings > General
 > Plugins > Upload Statistics > Preferences (at the bottom of the window)*
 

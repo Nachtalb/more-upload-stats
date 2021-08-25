@@ -60,7 +60,7 @@ class Plugin(BasePlugin):
     }
     metasettings = {
         'stats_file': {
-            'description': 'Statistics Savepath',
+            'description': 'Statistics file',
             'type': 'file',
             'chooser': 'file',
         },
@@ -100,8 +100,10 @@ class Plugin(BasePlugin):
             self.log(f'Statistics file does not exist yet. Creating "{path}"')
             self.save_stats()
 
-    def save_stats(self):
-        Path(self.settings['stats_file']).write_text(json.dumps(self.stats))
+    def save_stats(self, file=None):
+        if not file:
+            file = Path(self.settings['stats_file'])
+        file.write_text(json.dumps(self.stats))
 
     def upload_finished_notification(self, user, virtual_path, real_path):
         info = self.stats['file'].get(real_path, {})
@@ -306,4 +308,14 @@ class Plugin(BasePlugin):
             file.write(self.build_html())
             webbrowser.open(file.name)
 
+    def reset_stats(self, *_):
+        backup = Path(self.settings['stats_file']).with_suffix('.bak.json')
+        self.save_stats(backup)
+        self.log(f'Created a backup at "{backup}"')
+        self.stats = {}
+        self.save_stats()
+        self.load_stats()
+        self.log('Statistics have been reset')
+
     __privatecommands__ = __publiccommands__ = [('upstats', open_stats)]
+    __privatecommands__ = __publiccommands__ = [('upstats-reset', reset_stats)]
