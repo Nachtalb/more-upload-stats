@@ -105,6 +105,7 @@ class Plugin(BasePlugin):
 
     def upload_finished_notification(self, user, virtual_path, real_path):
         info = self.stats['file'].get(real_path, {})
+        user_info = self.stats['user'].get(user, {})
         try:
             stat = Path(real_path).stat()
         except: # noqa
@@ -115,16 +116,16 @@ class Plugin(BasePlugin):
             'total': info.get('total', 0) + 1,
             'virtual_path': virtual_path,
             'last_user': user,
-            'last_modified': stat.st_mtime if stat else '',
-            'file_size': stat.st_size if stat else '',
-            'total_bytes': info.get('total_bytes', 0) + stat.st_size if stat else '',
+            'last_modified': stat.st_mtime if stat else 0,
+            'file_size': stat.st_size if stat else 0,
+            'total_bytes': info.get('total_bytes', 0) + stat.st_size if stat else 0,
         }
 
         self.stats['user'][user] = {
-            'total': self.stats['user'].get(user, {}).get('total', 0) + 1,
+            'total': user_info.get('total', 0) + 1,
             'last_file': virtual_path,
             'last_real_file': real_path,
-            'total_bytes': info.get('total_bytes', 0) + stat.st_size if stat else '',
+            'total_bytes': user_info.get('total_bytes', 0) + stat.st_size if stat else 0,
         }
         self.save_stats()
 
