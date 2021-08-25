@@ -10,7 +10,7 @@ statistics.
 huge page. You can disable this by disabling auto thresholding in the
 preferences and setting the manual thresholds to 0.
 
-.. figure:: https://raw.githubusercontent.com/Nachtalb/more-upload-stats/main/images/screenshot.jpg
+.. figure:: https://raw.githubusercontent.com/Nachtalb/more-upload-stats/master/images/screenshot.jpg
    :alt: screenshot
 
 Installation
@@ -57,4 +57,4 @@ License
 .. _sorttable: https://www.kryogenix.org/code/browser/sorttable/
 .. _smartline: https://www.flaticon.com/authors/smartline
 .. _www.flaticon.com: https://www.flaticon.com/
-.. _MIT: https://github.com/Nachtalb/more-upload-stats/blob/main/LICENSE
+.. _MIT: https://github.com/Nachtalb/more-upload-stats/blob/master/LICENSE
