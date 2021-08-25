@@ -63,10 +63,7 @@ class Plugin(BasePlugin):
         }
     }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.log('Loading plugin')
-
+    def init(self):
         self.stats = {'file': {}, 'user': {}}
         self.ready = False
 
