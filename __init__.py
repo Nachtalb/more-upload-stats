@@ -7,7 +7,7 @@ from statistics import mean, median
 from tempfile import NamedTemporaryFile
 import webbrowser
 
-from pynicotine.pluginsystem import BasePlugin
+from pynicotine.pluginsystem import BasePlugin, returncode
 
 BASE_PATH = Path(__file__).parent
 
@@ -307,6 +307,7 @@ class Plugin(BasePlugin):
         with NamedTemporaryFile(suffix='.html', mode='w', delete=False, encoding='utf-8') as file:
             file.write(self.build_html())
             webbrowser.open(file.name)
+        return returncode['zap']
 
     def reset_stats(self, *_):
         backup = Path(self.settings['stats_file']).with_suffix('.bak.json')
@@ -316,5 +317,6 @@ class Plugin(BasePlugin):
         self.save_stats()
         self.load_stats()
         self.log('Statistics have been reset')
+        return returncode['zap']
 
     __privatecommands__ = __publiccommands__ = [('upstats', open_stats), ('upstats-reset', reset_stats)]
