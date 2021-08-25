@@ -283,10 +283,11 @@ class Plugin(BasePlugin):
         return self.ranking(tuple(map(lambda i: (Path(i[0]).name, i[1]['total'], '#file-' + id_string(i[0])),
                                       self.stats['file'].items())))
 
-    def build_html(self):
+    def build_html(self, user_threshold=None, file_threshold=None):
         template = (BASE_PATH / 'template.html').read_text()
-        user_threshold = self.user_threshold()
-        file_threshold = self.file_threshold()
+
+        user_threshold = self.user_threshold() if user_threshold is None else user_threshold
+        file_threshold = self.file_threshold() if file_threshold is None else file_threshold
 
         info = {
             'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -303,9 +304,15 @@ class Plugin(BasePlugin):
         }
         return template.format(**info)
 
-    def open_stats(self, *_):
+    def open_stats(self, _, args):
+        args = tuple(filter(None, map(str.strip, args.split())))
+        try:
+            thresholds = tuple(map(int, args[:2]))
+        except ValueError:
+            thresholds = []
+
         with NamedTemporaryFile(suffix='.html', mode='w', delete=False, encoding='utf-8') as file:
-            file.write(self.build_html())
+            file.write(self.build_html(*thresholds))
             webbrowser.open(file.name)
         return returncode['zap']
 
