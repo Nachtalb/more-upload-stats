@@ -4,6 +4,12 @@ More Upload Statistics
 A small plugin for `Nicotine+`_ to create more detailed upload
 statistics.
 
+⚠ No data previous to enabling this plugin will be available.
+
+⚠ Some data in the statistics may be hidden to not create an unnecessarily
+huge page. You can disable this by disabling auto thresholding in the
+preferences and setting the manual thresholds to 0.
+
 .. figure:: https://raw.githubusercontent.com/Nachtalb/more-upload-stats/main/images/screenshot.jpg
    :alt: screenshot
 
@@ -17,15 +23,14 @@ the plugins folder.
 Now you can enable the *Upload Statistics* plugin in the previously
 opened plugin settings.
 
+
 Usage
 -----
 
 Type ``/upstats`` into a chat message and hit enter.
 
-You can also change the place where the statistics are saved to and if
-you want to use the dark or light theme by default: *Settings > General
-> Plugins > Upload Statistics > Preferences (at the bottom of the
-window)*
+There are also variouse settings that you can adjust: *Settings > General
+> Plugins > Upload Statistics > Preferences (at the bottom of the window)*
 
 Contributing
 ------------
