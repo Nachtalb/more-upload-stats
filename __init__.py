@@ -1,11 +1,11 @@
+import base64
 from datetime import datetime
+import hashlib
 import json
 from pathlib import Path
+from statistics import mean, median
 from tempfile import NamedTemporaryFile
 import webbrowser
-import base64
-import hashlib
-from statistics import mean, median
 
 from pynicotine.pluginsystem import BasePlugin
 
@@ -134,7 +134,7 @@ class Plugin(BasePlugin):
         median_filesize = readable_size_html(median(file_size))
         average_bytes = readable_size_html(mean(total_bytes_per_file))
         median_bytes = readable_size_html(median(total_bytes_per_file))
-        average_uploads_file = mean(total_uploads_per_file)
+        average_uploads_file = format(mean(total_uploads_per_file), '.2f')
         median_uploads_files = median(total_uploads_per_file)
 
         return f'''
