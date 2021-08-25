@@ -54,6 +54,9 @@ class Plugin(BasePlugin):
     settings = {
         'stats_file': str(BASE_PATH / 'stats.json'),
         'dark_theme': True,
+        'threshold_auto': True,
+        'threshold_file': 2,
+        'threshold_user': 5,
     }
     metasettings = {
         'stats_file': {
@@ -64,7 +67,19 @@ class Plugin(BasePlugin):
         'dark_theme': {
             'description': 'Enable Dark Theme',
             'type': 'bool',
-        }
+        },
+        'threshold_auto': {
+            'description': 'Automatically set threshold (ignore the next two settings)',
+            'type': 'bool',
+        },
+        'threshold_file': {
+            'description': 'Only show files uploaded more than',
+            'type': 'int',
+        },
+        'threshold_user': {
+            'description': 'Only show users that have download more than',
+            'type': 'int',
+        },
     }
 
     def init(self):
@@ -166,9 +181,18 @@ class Plugin(BasePlugin):
         </dl>
         '''
 
-    def user_stats(self):
+    def user_threshold(self):
+        if self.settings['threshold_auto']:
+            uniq_totals = set(map(lambda i: i['total'], self.stats['user'].values()))
+            return sorted(uniq_totals)[int(len(uniq_totals) * .25)]
+        else:
+            return self.settings['threshold_user']
+
+    def user_stats(self, threshold=0):
         html = ''
         for user, data in sorted(self.stats['user'].items(), key=lambda i: i[1]['total'], reverse=True):
+            if data['total'] <= threshold:
+                continue
             filename = a(Path(data['last_file']).name,
                          href='#file-' + id_string(data['last_real_file']),
                          title=f'RP: {data["last_real_file"]}\nVP: {data["last_file"]}')
@@ -187,9 +211,19 @@ class Plugin(BasePlugin):
             </tr>'''
         return html
 
-    def file_stats(self):
+    def file_threshold(self):
+        if self.settings['threshold_auto']:
+            uniq_totals = set(map(lambda i: i['total'], self.stats['file'].values()))
+            return sorted(uniq_totals)[int(len(uniq_totals) * .25)]
+        else:
+            return self.settings['threshold_file']
+
+    def file_stats(self, threshold=0):
         html = ''
+
         for real_path, file in sorted(self.stats['file'].items(), key=lambda i: i[1]['total'], reverse=True):
+            if file['total'] <= threshold:
+                continue
             name = a(Path(real_path).name,
                      title=f'RP: {real_path}\nVP: {file["virtual_path"]}',
                      href='file:///' + real_path,
@@ -248,11 +282,16 @@ class Plugin(BasePlugin):
 
     def build_html(self):
         template = (BASE_PATH / 'template.html').read_text()
+        user_threshold = self.user_threshold()
+        file_threshold = self.file_threshold()
+
         info = {
             'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'BASE': str(BASE_PATH).replace('\\', '/') + '/',
-            'userstats': self.user_stats(),
-            'filestats': self.file_stats(),
+            'userstats': self.user_stats(user_threshold),
+            'filestats': self.file_stats(file_threshold),
+            'user_threshold': user_threshold,
+            'file_threshold': file_threshold,
             'summary': self.summary(),
             'stats_link': self.stats_link(),
             'THEME': 'dark' if self.settings['dark_theme'] else '',
