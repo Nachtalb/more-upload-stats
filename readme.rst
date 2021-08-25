@@ -27,7 +27,8 @@ opened plugin settings.
 Usage
 -----
 
-Type ``/upstats`` into a chat message and hit enter.
+Type ``/upstats [user threshold] [file threshold]`` into a chat message and hit enter.
+The thresholds are optional.
 
 Type ``/upstats-reset`` to reset the statistics (a backup will be created).
 
