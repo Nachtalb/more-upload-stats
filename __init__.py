@@ -317,5 +317,4 @@ class Plugin(BasePlugin):
         self.load_stats()
         self.log('Statistics have been reset')
 
-    __privatecommands__ = __publiccommands__ = [('upstats', open_stats)]
-    __privatecommands__ = __publiccommands__ = [('upstats-reset', reset_stats)]
+    __privatecommands__ = __publiccommands__ = [('upstats', open_stats), ('upstats-reset', reset_stats)]
