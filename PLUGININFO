@@ -1,4 +1,4 @@
-Version="1.2.0"
+Version="1.2.1.dev0"
 Authors=['Nachtalb']
-Name="Upload Statistics"
+Name="Upload Statistics DEV"
 Description="Collect more detailed upload statistics."
