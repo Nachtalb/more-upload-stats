@@ -1,11 +1,12 @@
 import base64
 from datetime import datetime
+from functools import reduce
 import hashlib
 import json
 from pathlib import Path
 from statistics import mean, median
 from tempfile import NamedTemporaryFile
-from threading import Thread
+from threading import Event, Thread
 from time import sleep, time
 from urllib import request
 import webbrowser
@@ -17,6 +18,11 @@ __version__ = (BASE_PATH / 'PLUGININFO').read_text().split('\n')[0].split('=')[1
 
 
 def tag(tagname, c='', **data):
+    tags = tagname.split()
+    if len(tags) > 1:
+        tags[-1] = tag(tags[-1], c, **data)
+        return reduce(lambda c, o: tag(o, c), tags[::-1])
+
     attrs = ' '.join(map(lambda i: f'{i[0].replace("_", "-")}="{i[1]}"', data.items()))
     return f'<{tagname} {attrs}>{c}</{tagname}>'
 
@@ -54,28 +60,37 @@ def readable_size_html(num):
 
 class PeriodicJob(Thread):
     __stopped = False
-    __pause = False
     last_run = None
 
     name = ''
     delay = 1
     _min_delay = 1
 
-    def __init__(self, delay=None, update=None, name=None):
+    def __init__(self, delay=None, update=None, name=None, before_start=None):
         super().__init__(name=name or self.name)
         self.delay = delay or self.delay
+        self.before_start = before_start
+        self.first_round = Event()
+
+        self.__pause = Event()
+        self.__pause.set()
+
         if update:
             self.update = update
 
     def time_to_work(self):
         delay = self.delay() if callable(self.delay) else self.delay
-        return not self.__pause and (not self.last_run or time() - self.last_run > delay)
+        return self.__pause.wait() and (not self.last_run or time() - self.last_run > delay)
 
     def run(self):
+        if self.before_start:
+            self.before_start()
         while not self.__stopped:
             if self.time_to_work():
                 self.update()
                 self.last_run = time()
+            if not self.first_round.is_set():
+                self.first_round.set()
             sleep(self._min_delay)
 
     def stop(self, wait=True):
@@ -84,10 +99,10 @@ class PeriodicJob(Thread):
             self.join()
 
     def pause(self):
-        self.__pause = True
+        self.__pause.clear()
 
     def resume(self):
-        self.__pause = False
+        self.__pause.set()
 
 
 class Plugin(BasePlugin):
@@ -160,6 +175,7 @@ Only files that have been uploaded more than this will be shown on the statistic
 
     update_url = 'https://api.github.com/repos/Nachtalb/more-upload-stats/tags'
     release_url = 'https://github.com/Nachtalb/more-upload-stats/releases/tag/'
+    update_version = None
 
     def init(self):
         self.stats = {'file': {}, 'user': {}}
@@ -167,26 +183,32 @@ Only files that have been uploaded more than this will be shown on the statistic
 
         self.load_stats()
 
-        self.auto_builder = PeriodicJob(name='AutoBuilder',
-                                        delay=lambda: self.settings['auto_regenerate'] * 60,
-                                        update=self.update_index_html)
-        self.auto_builder.start()
         self.auto_update = PeriodicJob(name='AutoUpdate',
                                        delay=3600,
                                        update=self.check_update)
         self.auto_update.start()
+
+        self.auto_builder = PeriodicJob(name='AutoBuilder',
+                                        delay=lambda: self.settings['auto_regenerate'] * 60,
+                                        update=self.update_index_html,
+                                        before_start=lambda: self.auto_update.first_round.wait())
+        self.auto_builder.start()
         self.log(f'Running version {__version__}')
 
     def check_update(self):
         try:
             if 'dev' in __version__ or not self.settings['check_update']:
+                self.update_version = None
                 return
+
+            self.log('Checking for updates')
 
             with request.urlopen(self.update_url) as file:
                 latest_info = next(iter(json.load(file)), {})
                 latest_version = latest_info.get('name', '')
                 if latest_version.replace('v', '') != __version__:
-                    msg = f'# A new version of "Upload Statistics" is available: {self.release_url}{latest_version}'  # noqa
+                    self.update_version = latest_version
+                    msg = f'# A new version of "Upload Statistics" is available: {latest_version} {self.release_url}{latest_version}'  # noqa
                     self.log('\n{border}\n{msg}\n{border}'.format(msg=msg, border='#' * len(msg)))
         except Exception as e:
             self.log(f'ERROR: Could not fetch update {e}')
@@ -405,6 +427,7 @@ Only files that have been uploaded more than this will be shown on the statistic
             'BASE': str(BASE_PATH).replace('\\', '/') + '/',
             'DARK_THEME': 'checked' if self.settings['dark_theme'] else '',
             'head': '',
+            'update': '',
             'summary': self.summary(),
             'stats_link': self.stats_link(),
             'userranking': self.user_ranking(),
@@ -413,6 +436,13 @@ Only files that have been uploaded more than this will be shown on the statistic
 
         if self.settings['auto_refresh'] and user_threshold is file_threshold is None:
             info['head'] = tag('meta', http_equiv='refresh', content=60)
+
+        if self.update_version:
+            info['update'] = tag('h4 a',
+                                 'A new update is available. Current: {current} New: {new}'.format(
+                                     current=tag('kbd', __version__),
+                                     new=tag('kbd', self.update_version[1:])
+                                 ), href=self.release_url + self.update_version, target='_blank')
 
         user_threshold = self.user_threshold() if user_threshold is None else user_threshold
         file_threshold = self.file_threshold() if file_threshold is None else file_threshold
