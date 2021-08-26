@@ -34,6 +34,14 @@ h1 small {
   font-size: 50%;
 }
 
+a {
+  color: #fa6855;
+}
+
+a:hover {
+  color: #c24448;
+}
+
 abbr {
   text-decoration: none;
 }
@@ -50,11 +58,13 @@ body .wrapper {
 }
 
 #theme:checked + .wrapper {
-  filter: invert(1);
+  background-color: #111;
+  color: #ddd;
 }
 
 #theme:checked + .wrapper .icon-contrast {
   transform: rotate(900deg);
+  filter: invert(1)
 }
 
 .icon-contrast {
@@ -79,10 +89,6 @@ h1 {
 /*--------------------
 Leaderboard
 --------------------*/
-
-#theme:checked + .wrapper .leaderboard {
-  filter: invert(1);
-}
 
 .leaderboard {
   height: 326px;
