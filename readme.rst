@@ -27,13 +27,42 @@ opened plugin settings.
 Usage
 -----
 
-Type ``/upstats [user threshold] [file threshold]`` into a chat message and hit enter.
-The thresholds are optional.
+- Type ``/upstats`` into a chat message and hit enter.
 
-Type ``/upstats-reset`` to reset the statistics (a backup will be created).
+- If you want to temporarely disable or change the thresholds you can
+  do so like this: ``/upstats 0 2``. The values are user and file
+  threshold respectively.
 
-There are also variouse settings that you can adjust: *Settings > General
-> Plugins > Upload Statistics > Preferences (at the bottom of the window)*
+- Use ``/upstats-reset`` to reset the statistics (a backup will be created beforhand).
+
+
+Settings
+--------
+
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+| Name                | Function                                                                                | Default                       |
++=====================+=========================================================================================+===============================+
+| Raw statistics file | JSON file where containing the raw data                                                 | {Plugin Directory}/stats.json |
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+| Statistic page file | HTML file presenting the data in a human readable way                                   | {Plugin Directory}/index.html |
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+| Dark Theme          | Enable / Disable dark theme                                                             | Enabled                       |
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+| Auto refresh        | Automatically refresh the statistics page every minute                                  | Disabled                      |
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+| Auto regenerate     | Automatically regenerate statistics page every X minutes                                | 30min                         |
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+| Auto threshold      | Automatically set a threshold respective to the gathered data.                          | Enabled                       |
+|                     | Data under the threshold will be hidden from the statistics page.                       |                               |
+|                     | Overrides both user and file threshold when enabled.                                    |                               |
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+| User threshold      | Fix threshold for users.                                                                | 2                             |
+|                     | Only users who downloaded more files than this will be shown on the statistics page.    |                               |
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+| File threshold      | Fix threshold for files.                                                                | 5                             |
+|                     | Only files that have been uploaded more than this will be shown on the statistics page. |                               |
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+
 
 Contributing
 ------------

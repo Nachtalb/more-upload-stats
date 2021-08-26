@@ -104,37 +104,49 @@ class Plugin(BasePlugin):
     }
     metasettings = {
         'stats_file': {
-            'description': 'Statistics file (data raw)',
+            'description': '''Raw statistics file
+JSON file where containing the raw data''',
             'type': 'file',
             'chooser': 'file',
         },
         'stats_html_file': {
-            'description': 'Statistics file (data representation)',
+            'description': '''Statistic page file
+HTML file presenting the data in a human readable way''',
             'type': 'file',
             'chooser': 'file',
         },
         'dark_theme': {
-            'description': 'Enable Dark Theme',
+            'description': '''Dark Theme
+Enable / Disable dark theme''',
+            'type': 'bool',
+        },
+        'auto_refresh': {
+            'description': '''Auto refresh
+Automatically refresh the statistics page every minute''',
             'type': 'bool',
         },
         'auto_regenerate': {
-            'description': 'Autoregenerate statistics page every X min (0 to disable)',
+            'description': '''Auto regenerate
+Automatically regenerate statistics page every X minutes''',
             'type': 'int',
         },
-        'auto_refresh': {
-            'description': 'Autorefresh page every min (only really useful if aute regeneration is turned on)',
-            'type': 'bool',
-        },
         'threshold_auto': {
-            'description': 'Automatically set threshold (ignore the next two settings)',
+            'description': '''Auto threshold
+Automatically set a threshold respective to the gathered data.
+Data under the threshold will be hidden from the statistics page.
+Overrides both user and file threshold when enabled.''',
             'type': 'bool',
         },
         'threshold_file': {
-            'description': 'Only show files uploaded more than',
+            'description': '''User threshold
+Fix threshold for users.
+Only users who downloaded more files than this will be shown on the statistics page.''',
             'type': 'int',
         },
         'threshold_user': {
-            'description': 'Only show users that have download more than',
+            'description': '''File threshold
+Fix threshold for files.
+Only files that have been uploaded more than this will be shown on the statistics page.''',
             'type': 'int',
         },
     }
