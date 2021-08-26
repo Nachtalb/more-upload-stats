@@ -313,16 +313,15 @@ Only files that have been uploaded more than this will be shown on the statistic
                          href='#file-' + id_string(data['last_real_file']),
                          title=f'RP: {data["last_real_file"]}\nVP: {data["last_file"]}')
 
-            if 'total_bytes' in data:
-                total_bytes = readable_size_html(data['total_bytes'])
-            else:
-                total_bytes = '-'
+            total_bytes_raw = total_bytes = '-'
+            if total_bytes_raw := data.get('total_bytes'):
+                total_bytes = readable_size_html(total_bytes_raw)
 
             html += f'''
             <tr id="user-{id_string(user)}">
                 <td>{user}</td>
                 <td>{data["total"]}</td>
-                <td>{total_bytes}</td>
+                <td sorttable_customkey="{total_bytes_raw}">{total_bytes}</td>
                 <td>{filename}</td>
             </tr>'''
         return html
@@ -345,14 +344,13 @@ Only files that have been uploaded more than this will be shown on the statistic
                      href='file:///' + real_path,
                      target='_blank')
 
-            if 'file_size' in file and 'total_bytes' in file:
-                total_bytes = abbr(readable_size(file['total_bytes']),
-                                   title='Filesize: {filesize} ({raw_filesize})\nTotal Bytes: {total_bytes}'.format(
-                                       raw_filesize=file['file_size'],
-                                       filesize=readable_size(file['file_size']),
-                                       total_bytes=file['total_bytes']))
-            else:
-                total_bytes = '-'
+            total_bytes_raw = total_bytes = '-'
+            if total_bytes_raw := file.get('total_bytes'):
+                total_bytes = readable_size_html(total_bytes_raw)
+
+            file_size_raw = file_size = '-'
+            if file_size_raw := file.get('file_size'):
+                file_size = readable_size_html(file_size_raw)
 
             last_user = a(file['last_user'], href='#user-' + id_string(file['last_user']))
 
@@ -360,7 +358,8 @@ Only files that have been uploaded more than this will be shown on the statistic
             <tr id="file-{id_string(real_path)}">
                 <td>{name}</td>
                 <td>{file["total"]}</td>
-                <td>{total_bytes}</td>
+                <td sorttable_customkey="{total_bytes_raw}">{total_bytes}</td>
+                <td sorttable_customkey="{file_size_raw}">{file_size}</td>
                 <td>{last_user}</td>
             </tr>'''
         return html
