@@ -91,7 +91,7 @@ class AutoBuilder(StopableThread):
 
 class Plugin(BasePlugin):
 
-    __name__ = 'Upload Statistics DEV'
+    __name__ = 'Upload Statistics'
     settings = {
         'stats_file': str(BASE_PATH / 'stats.json'),
         'stats_html_file': str(BASE_PATH / 'index.html'),
@@ -426,6 +426,6 @@ Only files that have been uploaded more than this will be shown on the statistic
         return returncode['zap']
 
     __privatecommands__ = __publiccommands__ = [
-        ('dupstats', open_stats),
-        ('dupstats-reset', reset_stats)
+        ('upstats', open_stats),
+        ('upstats-reset', reset_stats)
     ]

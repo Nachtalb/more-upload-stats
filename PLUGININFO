@@ -1,4 +1,4 @@
-Version="1.1.3.dev0"
+Version="1.2.0"
 Authors=['Nachtalb']
-Name="Upload Statistics DEV"
-Description="Collect more detailed upload statistics.\n\n⚠ No data previous to enabling this plugin will be available.\n⚠ Some data in the statistics may be hidden to not create an unnecessarily huge page. You can disable this by disabling auto thresholding in the preferences and setting the manual thresholds to 0.\n\n - To open the statistics use the command \"/upstats [user threshold] [file threshold]\". The thresholds are optional.\n - With the command \"/upstats-reset\" you can reset the statistics (it will also create a backup first).\n\nAuthor: https://github.com/Nachtalb\nSource: https://github.com/Nachtalb/more-upload-stats"
+Name="Upload Statistics"
+Description="Collect more detailed upload statistics."
