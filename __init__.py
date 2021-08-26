@@ -49,7 +49,7 @@ def id_string(string):
 
 
 def readable_size_html(num):
-    return abbr(readable_size(num), title=format(num, '.2f') if isinstance(num, float) else num)
+    return abbr(readable_size(num), data_tooltip=format(num, '.2f') if isinstance(num, float) else num)
 
 
 class PeriodicJob(Thread):
@@ -311,7 +311,8 @@ Only files that have been uploaded more than this will be shown on the statistic
                 continue
             filename = a(Path(data['last_file']).name,
                          href='#file-' + id_string(data['last_real_file']),
-                         title=f'RP: {data["last_real_file"]}\nVP: {data["last_file"]}')
+                         data_tooltip=f'RP: {data["last_real_file"]}\nVP: {data["last_file"]}',
+                         data_tooltip_align='left')
 
             total_bytes_raw = total_bytes = '-'
             if total_bytes_raw := data.get('total_bytes'):
@@ -340,9 +341,10 @@ Only files that have been uploaded more than this will be shown on the statistic
             if file['total'] <= threshold:
                 continue
             name = a(Path(real_path).name,
-                     title=f'RP: {real_path}\nVP: {file["virtual_path"]}',
+                     data_tooltip=f'RP: {real_path}\nVP: {file["virtual_path"]}',
                      href='file:///' + real_path,
-                     target='_blank')
+                     target='_blank',
+                     data_tooltip_align='left')
 
             total_bytes_raw = total_bytes = '-'
             if total_bytes_raw := file.get('total_bytes'):
@@ -369,7 +371,7 @@ Only files that have been uploaded more than this will be shown on the statistic
         name = Path(filepath).name
         return a(name,
                  href='file:///' + filepath,
-                 title=filepath,
+                 data_tooltip=filepath,
                  target='_blank',
                  download=name)
 

@@ -43,6 +43,7 @@ a:hover {
 }
 
 abbr {
+  border-bottom: 1px dotted;
   text-decoration: none;
 }
 
@@ -288,4 +289,65 @@ Leaderboard
 }
 .the-most img {
   max-width: 100%;
+}
+
+/************ Tooltip styling ************/
+[data-tooltip=""]::before,
+[data-tooltip=""]::after {
+  opacity: 0 !important;
+}
+
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::before, [data-tooltip]::after {
+  font-size: 0.8em;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  user-select: none;
+  visibility: hidden;
+  transition: opacity 180ms ease-in, visibility 200ms ease-in;
+  z-index: 1000;
+}
+
+[data-tooltip]:hover::before, [data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+[data-tooltip]::before {
+  content: "";
+  border: 5px solid transparent;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100% - 5px);
+  border-top-color: rgba(97, 97, 97, 0.95);
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  text-align: center;
+  min-width: 10em;
+  white-space: pre;
+  max-width: 90em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fff;
+  background: rgba(97, 97, 97, 0.95);
+  padding: 9px 10px;
+  border-radius: 3px;
+  box-shadow: 0 12px 22px -10px rgba(0, 0, 0, 0.25);
+  left: 50%;
+  bottom: calc(100% + 5px);
+  transform: translateX(-50%);
+}
+
+[data-tooltip-align="left"]::after {
+  text-align: left;
+}
+
+[data-tooltip-align="right"]::after {
+  text-align: right;
 }
