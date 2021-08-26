@@ -4,10 +4,10 @@ import hashlib
 import json
 from pathlib import Path
 from statistics import mean, median
-import webbrowser
-from threading import Thread
-from time import time, sleep
 from tempfile import NamedTemporaryFile
+from threading import Thread
+from time import sleep, time
+import webbrowser
 
 from pynicotine.pluginsystem import BasePlugin, returncode
 
@@ -97,7 +97,7 @@ class Plugin(BasePlugin):
         'stats_html_file': str(BASE_PATH / 'index.html'),
         'dark_theme': True,
         'auto_regenerate': 30,
-        'auto_refresh': True,
+        'auto_refresh': False,
         'threshold_auto': True,
         'threshold_file': 2,
         'threshold_user': 5,
