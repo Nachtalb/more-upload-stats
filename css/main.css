@@ -30,15 +30,6 @@
     box-sizing: border-box;
 }
 
-body {
-  transition: ease-in-out all 0.5s;
-}
-
-body.dark {
-  background-color: #222;
-  filter: invert(1);
-}
-
 h1 small {
   font-size: 50%;
 }
@@ -47,8 +38,22 @@ abbr {
   text-decoration: none;
 }
 
+.hidden {
+  display: none !important;
+}
 
-body.dark .icon-contrast {
+body .wrapper {
+  margin: 0;
+  padding: 0;
+  background: #eee;
+  transition: ease-in-out all 0.5s;
+}
+
+#theme:checked + .wrapper {
+  filter: invert(1);
+}
+
+#theme:checked + .wrapper .icon-contrast {
   transform: rotate(900deg);
 }
 
@@ -67,7 +72,7 @@ h1 {
   position: relative;
 }
 
-#TopStats + div {
+#TopStats + .wrapper {
   margin-bottom: 2.5rem;
 }
 
@@ -75,7 +80,7 @@ h1 {
 Leaderboard
 --------------------*/
 
-body.dark .leaderboard {
+#theme:checked + .wrapper .leaderboard {
   filter: invert(1);
 }
 

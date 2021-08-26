@@ -20,14 +20,15 @@
     .icon-trophy {{ background-image: url('file:///{BASE}images/trophy.svg'); }}
   </style>
 </head>
-<body class="{THEME}">
-
+<body>
+  <input type="checkbox" class="hidden" {DARK_THEME} name="theme" id="theme">
+  <div class="wrapper">
   <div class="container">
     <div class="row">
       <div class="column" style="margin-top: 5%">
         <h1 id="top">
           Upload Statistics <small>{date}</small>
-          <span class='icon-contrast' title='Change Theme' onclick="document.body.classList.toggle('dark')"></span>
+          <label class='icon-contrast' title='Change Theme' for="theme"></label>
         </h1>
         <p>Go to <a href="#TopStats">Top</a> | <a href='#Summary'>Summary</a> | <a href='#UserStats'>User Statistics</a> | <a href='#FileStats'>File Statistics</a></p>
 
@@ -104,5 +105,6 @@
     </div>
   </div>
   <script type="application/javascript" src="{BASE}js/sorttable.js"></script>
+  </div>
 </body>
 </html>
