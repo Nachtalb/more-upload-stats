@@ -5,20 +5,23 @@ import json
 from pathlib import Path
 from statistics import mean, median
 import webbrowser
+from threading import Thread
+from time import time, sleep
+from tempfile import NamedTemporaryFile
 
 from pynicotine.pluginsystem import BasePlugin, returncode
 
 BASE_PATH = Path(__file__).parent
 
 
-def tag(tagname, content, **data):
-    attrs = ' '.join(map(lambda i: f'{i[0]}="{i[1]}"', data.items()))
-    return f'<{tagname} {attrs}>{content}</{tagname}>'
+def tag(tagname, c='', **data):
+    attrs = ' '.join(map(lambda i: f'{i[0].replace("_", "-")}="{i[1]}"', data.items()))
+    return f'<{tagname} {attrs}>{c}</{tagname}>'
 
 
 def tagger(tagname):
-    def wrapper(content, **data):
-        return tag(tagname, content, **data)
+    def wrapper(c='', **data):
+        return tag(tagname, c, **data)
     return wrapper
 
 
@@ -47,6 +50,45 @@ def readable_size_html(num):
     return abbr(readable_size(num), title=format(num, '.2f') if isinstance(num, float) else num)
 
 
+class StopableThread(Thread):
+    __stopped = False
+    __pause = False
+
+    def run(self):
+        while not self.__stopped:
+            if self.__pause:
+                sleep(0.1)
+                continue
+            self.update()
+
+    def update(self):
+        raise NotImplementedError()
+
+    def stop(self, wait=True):
+        self.__stopped = True
+        if wait and self.is_alive():
+            self.join()
+
+    def pause(self):
+        self.__pause = True
+
+    def resume(self):
+        self.__pause = False
+
+
+class AutoBuilder(StopableThread):
+    def __init__(self, plugin):
+        self.plugin = plugin
+        self.last_build = None
+        super().__init__(name='AutoBuilder', daemon=True)
+
+    def update(self):
+        if not self.last_build or time() - self.last_build > self.plugin.settings['auto_regenerate'] * 60:
+            self.last_build = time()
+            self.plugin.update_index_html()
+        sleep(1)
+
+
 class Plugin(BasePlugin):
 
     __name__ = 'UploadStats'
@@ -54,6 +96,8 @@ class Plugin(BasePlugin):
         'stats_file': str(BASE_PATH / 'stats.json'),
         'stats_html_file': str(BASE_PATH / 'index.html'),
         'dark_theme': True,
+        'auto_regenerate': 30,
+        'auto_refresh': True,
         'threshold_auto': True,
         'threshold_file': 2,
         'threshold_user': 5,
@@ -71,6 +115,14 @@ class Plugin(BasePlugin):
         },
         'dark_theme': {
             'description': 'Enable Dark Theme',
+            'type': 'bool',
+        },
+        'auto_regenerate': {
+            'description': 'Autoregenerate statistics page every X min (0 to disable)',
+            'type': 'int',
+        },
+        'auto_refresh': {
+            'description': 'Autorefresh page every min (only really useful if aute regeneration is turned on)',
             'type': 'bool',
         },
         'threshold_auto': {
@@ -92,6 +144,18 @@ class Plugin(BasePlugin):
         self.ready = False
 
         self.load_stats()
+
+        self.auto_builder = AutoBuilder(self)
+        self.auto_builder.start()
+
+    def stop(self):
+        self.auto_builder.stop(False)
+
+    def disable(self):
+        self.stop()
+
+    def shutdown_notification(self):
+        self.stop()
 
     def load_stats(self):
         path = Path(self.settings['stats_file'])
@@ -291,23 +355,36 @@ class Plugin(BasePlugin):
     def build_html(self, user_threshold=None, file_threshold=None):
         template = (BASE_PATH / 'template.html').read_text()
 
-        user_threshold = self.user_threshold() if user_threshold is None else user_threshold
-        file_threshold = self.file_threshold() if file_threshold is None else file_threshold
-
         info = {
             'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'BASE': str(BASE_PATH).replace('\\', '/') + '/',
-            'userstats': self.user_stats(user_threshold),
-            'filestats': self.file_stats(file_threshold),
-            'user_threshold': user_threshold,
-            'file_threshold': file_threshold,
+            'DARK_THEME': 'checked' if self.settings['dark_theme'] else '',
+            'head': '',
             'summary': self.summary(),
             'stats_link': self.stats_link(),
-            'THEME': 'dark' if self.settings['dark_theme'] else '',
             'userranking': self.user_ranking(),
             'fileranking': self.file_ranking(),
         }
+
+        if self.settings['auto_refresh'] and user_threshold is file_threshold is None:
+            info['head'] = tag('meta', http_equiv='refresh', content=60)
+
+        user_threshold = self.user_threshold() if user_threshold is None else user_threshold
+        file_threshold = self.file_threshold() if file_threshold is None else file_threshold
+        info.update({
+            'user_threshold': user_threshold,
+            'file_threshold': file_threshold,
+            'userstats': self.user_stats(user_threshold),
+            'filestats': self.file_stats(file_threshold),
+        })
+
         return template.format(**info)
+
+    def update_index_html(self):
+        file = Path(self.settings['stats_html_file'])
+        file.write_text(self.build_html(), encoding='utf-8')
+        self.log(f'Statistics generated and saved to "{file}"')
+        return file
 
     def open_stats(self, _, args):
         args = tuple(filter(None, map(str.strip, args.split())))
@@ -316,8 +393,14 @@ class Plugin(BasePlugin):
         except ValueError:
             thresholds = []
 
-        Path(self.settings['stats_html_file']).write_text(self.build_html(*thresholds), 'utf-8')
-        webbrowser.open(self.settings['stats_html_file'])
+        if thresholds:
+            with NamedTemporaryFile('w', encoding='utf-8', suffix='.html', delete=False) as file:
+                file.write(self.build_html(*thresholds))
+                filename = file.name
+        else:
+            filename = self.update_index_html()
+
+        webbrowser.open(str(filename))
         return returncode['zap']
 
     def reset_stats(self, *_):
