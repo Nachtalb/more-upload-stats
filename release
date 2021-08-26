@@ -1,0 +1,82 @@
+#!/usr/bin/fish
+
+function clean
+    echo $argv | cut -d= -f2- | cut -c2- | sed 's/.$//'
+end
+
+
+set -l p_info (cat PLUGININFO)
+echo (clean $p_info[1]) | read -d. -l major minor patch dev
+echo (clean $p_info[2]) | sed -E 's/(\\[|\\]|,)//g' | read -t -a p_authors
+set -l p_name (clean $p_info[3])
+
+read -P 'New version: ' -c $major.$minor.(math $patch + 1) -l new_version
+read -P 'Auhors: ' -c "$p_authors" -l new_authors
+set -l new_authors "['"(echo $new_authors | string split , | string trim | string join "', '")"']"
+read -P 'Name: ' -c (echo $p_name | sed 's/ DEV//') -l new_name
+
+function gen
+    echo 'Version="{v}"
+Authors={a}
+Name="{n}"
+Description="{d}"' | \
+    string replace '{v}' $argv[1] | \
+    string replace '{a}' $argv[2] | \
+    string replace '{n}' $argv[3] | \
+    string replace '{d}' $argv[4]
+end
+
+set -l new_description (cat description.txt | sed 's/\n/\\n/g')
+
+gen $new_version $new_authors $new_name $new_description > PLUGININFO
+
+sed -i -e "s/__name__ = '$p_name'/__name__ = '$new_name'/" __init__.py
+sed -i -e "s/'dupstats/'upstats/g" __init__.py
+
+git add PLUGININFO __init__.py
+git diff --staged
+
+function revert
+    gen (clean $p_info[1]) (clean $p_info[2]) (clean $p_info[3]) (clean $p_info[4]) > PLUGININFO
+    sed -i -e "s/__name__ = '$new_name'/__name__ = '$p_name'/" __init__.py
+    sed -i -e "s/'upstats/'dupstats/g" __init__.py
+    git reset PLUGININFO __init__.py
+end
+
+
+if test (read -P 'Oki [Y/n]? ' -c Y) != 'Y'
+    echo 'Not oki :/'
+    revert
+    exit 1
+end
+
+git commit -S -m "Release $new_version"
+git tag "v$new_version"
+
+echo $new_version | read -d. -l major minor patch
+
+set -l dev_version $major.$minor.(math $patch + 1).dev0
+set -l dev_name "$new_name DEV"
+
+gen $dev_version $new_authors $dev_name $new_description > PLUGININFO
+sed -i -e "s/__name__ = '$new_name'/__name__ = '$dev_name'/" __init__.py
+sed -i -e "s/'upstats/'dupstats/g" __init__.py
+echo "Back to development $dev_version"
+
+git add PLUGININFO __init__.py
+git diff --staged
+
+if test (read -P 'Oki [Y/n]? ' -c Y) != 'Y'
+    echo 'Not oki :/'
+    exit
+end
+
+git commit -S -m "Back to development $dev_version"
+
+if test (read -P 'Push [Y/n]? ' -c Y) != 'Y'
+    echo 'Not oki :/'
+    exit
+end
+
+git push
+git push --tag

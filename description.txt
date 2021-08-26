@@ -1,0 +1,21 @@
+Collect more detailed upload statistics.
+
+## Info ##
+
+⚠ No data previous to enabling this plugin will be available.
+⚠ Some data in the statistics may be hidden to not create an unnecessarily huge page. You can disable this by disabling auto thresholding in the preferences and setting the manual thresholds to 0.
+
+
+## Usage ##
+
+- Type ``/upstats`` into a chat message and hit enter.
+
+- If you want to temporarely disable or change the thresholds you can do so like this: ``/upstats 0 2``. The values are user and file threshold respectively.
+
+- Use ``/upstats-reset`` to reset the statistics (a backup will be created beforhand).
+
+
+## Credit ##
+
+Author: https://github.com/Nachtalb
+Source: https://github.com/Nachtalb/more-upload-stats
