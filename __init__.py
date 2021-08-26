@@ -50,19 +50,31 @@ def readable_size_html(num):
     return abbr(readable_size(num), title=format(num, '.2f') if isinstance(num, float) else num)
 
 
-class StopableThread(Thread):
+class PeriodicJob(Thread):
     __stopped = False
     __pause = False
+    last_run = None
+
+    name = ''
+    delay = 1
+    _min_delay = 1
+
+    def __init__(self, delay=None, update=None, name=None):
+        super().__init__(name=name or self.name)
+        self.delay = delay or self.delay
+        if update:
+            self.update = update
+
+    def time_to_work(self):
+        delay = self.delay() if callable(self.delay) else self.delay
+        return not self.__pause and (not self.last_run or time() - self.last_run > delay)
 
     def run(self):
         while not self.__stopped:
-            if self.__pause:
-                sleep(0.1)
-                continue
-            self.update()
-
-    def update(self):
-        raise NotImplementedError()
+            if self.time_to_work():
+                self.update()
+                self.last_run = time()
+            sleep(self._min_delay)
 
     def stop(self, wait=True):
         self.__stopped = True
@@ -74,19 +86,6 @@ class StopableThread(Thread):
 
     def resume(self):
         self.__pause = False
-
-
-class AutoBuilder(StopableThread):
-    def __init__(self, plugin):
-        self.plugin = plugin
-        self.last_build = None
-        super().__init__(name='AutoBuilder', daemon=True)
-
-    def update(self):
-        if not self.last_build or time() - self.last_build > self.plugin.settings['auto_regenerate'] * 60:
-            self.last_build = time()
-            self.plugin.update_index_html()
-        sleep(1)
 
 
 class Plugin(BasePlugin):
@@ -157,7 +156,9 @@ Only files that have been uploaded more than this will be shown on the statistic
 
         self.load_stats()
 
-        self.auto_builder = AutoBuilder(self)
+        self.auto_builder = PeriodicJob(name='AutoBuilder',
+                                        delay=lambda: self.settings['auto_regenerate'] * 60,
+                                        update=self.update_index_html)
         self.auto_builder.start()
 
     def stop(self):
