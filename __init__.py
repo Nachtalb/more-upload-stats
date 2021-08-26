@@ -7,11 +7,13 @@ from statistics import mean, median
 from tempfile import NamedTemporaryFile
 from threading import Thread
 from time import sleep, time
+from urllib import request
 import webbrowser
 
 from pynicotine.pluginsystem import BasePlugin, returncode
 
 BASE_PATH = Path(__file__).parent
+__version__ = (BASE_PATH / 'PLUGININFO').read_text().split('\n')[0].split('=')[1].replace('"', '')  # noqa
 
 
 def tag(tagname, c='', **data):
@@ -95,6 +97,7 @@ class Plugin(BasePlugin):
         'stats_file': str(BASE_PATH / 'stats.json'),
         'stats_html_file': str(BASE_PATH / 'index.html'),
         'dark_theme': True,
+        'check_update': True,
         'auto_regenerate': 30,
         'auto_refresh': False,
         'threshold_auto': True,
@@ -113,6 +116,11 @@ JSON file where containing the raw data''',
 HTML file presenting the data in a human readable way''',
             'type': 'file',
             'chooser': 'file',
+        },
+        'check_update': {
+            'description': '''Check for Updates
+Check for updates on start and periodically''',
+            'type': 'bool',
         },
         'dark_theme': {
             'description': '''Dark Theme
@@ -150,6 +158,9 @@ Only files that have been uploaded more than this will be shown on the statistic
         },
     }
 
+    update_url = 'https://api.github.com/repos/Nachtalb/more-upload-stats/tags'
+    release_url = 'https://github.com/Nachtalb/more-upload-stats/releases/tag/'
+
     def init(self):
         self.stats = {'file': {}, 'user': {}}
         self.ready = False
@@ -160,9 +171,29 @@ Only files that have been uploaded more than this will be shown on the statistic
                                         delay=lambda: self.settings['auto_regenerate'] * 60,
                                         update=self.update_index_html)
         self.auto_builder.start()
+        self.auto_update = PeriodicJob(name='AutoUpdate',
+                                       delay=3600,
+                                       update=self.check_update)
+        self.auto_update.start()
+        self.log(f'Running version {__version__}')
+
+    def check_update(self):
+        try:
+            if 'dev' in __version__ or not self.settings['check_update']:
+                return
+
+            with request.urlopen(self.update_url) as file:
+                latest_info = next(iter(json.load(file)), {})
+                latest_version = latest_info.get('name', '')
+                if latest_version.replace('v', '') != __version__:
+                    msg = f'# A new version of "Upload Statistics" is available: {self.release_url}{latest_version}'  # noqa
+                    self.log('\n{border}\n{msg}\n{border}'.format(msg=msg, border='#' * len(msg)))
+        except Exception as e:
+            self.log(f'ERROR: Could not fetch update {e}')
 
     def stop(self):
         self.auto_builder.stop(False)
+        self.auto_update.stop(False)
 
     def disable(self):
         self.stop()
