@@ -61,8 +61,24 @@
           </div>
         </div>
 
-        <h2 id="Summary">Summary</h2>
-        {summary}
+        <div class="row">
+          <div class="column one-half">
+            <h2 id="Summary">Summary</h2>
+            {summary}
+          </div>
+          <div class="column one-half">
+            <h2 id="PerDay">Per Day</h2>
+            <ul class="chart">
+              <li class="bar" style="width: {day_0_p}%" data-amount="{day_0}"><span>Monday</span></li>
+              <li class="bar" style="width: {day_1_p}%" data-amount="{day_1}"><span>Tuesday</span></li>
+              <li class="bar" style="width: {day_2_p}%" data-amount="{day_2}"><span>Wednesday</span></li>
+              <li class="bar" style="width: {day_3_p}%" data-amount="{day_3}"><span>Thursday</span></li>
+              <li class="bar" style="width: {day_4_p}%" data-amount="{day_4}"><span>Friday</span></li>
+              <li class="bar" style="width: {day_5_p}%" data-amount="{day_5}"><span>Saturday</span></li>
+              <li class="bar" style="width: {day_6_p}%" data-amount="{day_6}"><span>Sunday</span></li>
+            </ul>
+          </div>
+        </div>
 
         <h2 id="UserStats">User Statistics</h2>
         <p>Users who downloaded less or equal to {user_threshold} files are hidden. You can change this in the plugin settings.</p>

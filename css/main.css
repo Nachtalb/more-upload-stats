@@ -83,9 +83,67 @@ h1 {
   position: relative;
 }
 
-#TopStats + .wrapper {
-  margin-bottom: 2.5rem;
+/* Chart Style */
+
+.chart {
+  list-style: none;
+  padding: 0;
 }
+
+.chart li {
+  background: #fa6855;
+  font-size: 14px;
+  height: 54px;
+  padding: 14px 0 18px 0;
+  border-radius: 0 10px 10px 0;
+  margin: 0;
+  white-space: nowrap;
+  transition: eas;
+  box-shadow: 0 0 #ed6051;
+  transition: all 0.3s ease-in-out;
+}
+
+.chart li::before {
+  content: attr(data-amount);
+  margin: 0 1em;
+  width: auto;
+  height: 20px;
+  line-height: 19px;
+  color: #c24448;
+  background: #fff;
+  border-radius: 20px;
+  text-align: center;
+  display: inline-block;
+  padding: 0 1em;
+  min-width: 52px;
+  text-align: center;
+}
+
+.chart li span {
+    text-align: right;
+    position: absolute;
+    right: 50%;
+}
+
+.chart li:hover {
+    margin-left: 1em;
+}
+
+.chart li:nth-child(1) { background: #fa6855; box-shadow: 0 0 #fa6855; }
+.chart li:nth-child(2) { background: #ed6051; box-shadow: 0 0 #ed6051; }
+.chart li:nth-child(3) { background: #e0584c; box-shadow: 0 0 #e0584c; }
+.chart li:nth-child(4) { background: #d35048; box-shadow: 0 0 #d35048; }
+.chart li:nth-child(5) { background: #c64943; box-shadow: 0 0 #c64943; }
+.chart li:nth-child(6) { background: #ba413f; box-shadow: 0 0 #ba413f; }
+.chart li:nth-child(7) { background: #ad3a3a; box-shadow: 0 0 #ad3a3a; }
+
+.chart li:nth-child(1):hover { box-shadow: -1em 0 #fa6855; }
+.chart li:nth-child(2):hover { box-shadow: -1em 0 #ed6051; }
+.chart li:nth-child(3):hover { box-shadow: -1em 0 #e0584c; }
+.chart li:nth-child(4):hover { box-shadow: -1em 0 #d35048; }
+.chart li:nth-child(5):hover { box-shadow: -1em 0 #c64943; }
+.chart li:nth-child(6):hover { box-shadow: -1em 0 #ba413f; }
+.chart li:nth-child(7):hover { box-shadow: -1em 0 #ad3a3a; }
 
 /*--------------------
 Leaderboard
@@ -97,6 +155,7 @@ Leaderboard
   border-radius: 10px;
   box-shadow: 0 7px 30px rgba(62, 9, 11, 0.3);
   transition: ease-in-out filter 0.5s;
+  margin-bottom: 2.5rem;
 }
 .leaderboard h3 {
   font-size: 18px;

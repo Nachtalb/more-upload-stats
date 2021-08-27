@@ -177,8 +177,10 @@ Only files that have been uploaded more than this will be shown on the statistic
     release_url = 'https://github.com/Nachtalb/more-upload-stats/releases/tag/'
     update_version = None
 
+    default_stats = {'file': {}, 'user': {}, 'day': [0, 0, 0, 0, 0, 0, 0]}
+
     def init(self):
-        self.stats = {'file': {}, 'user': {}}
+        self.stats = self.default_stats.copy()
         self.ready = False
 
         self.load_stats()
@@ -226,11 +228,8 @@ Only files that have been uploaded more than this will be shown on the statistic
     def load_stats(self):
         path = Path(self.settings['stats_file'])
         try:
-            self.stats = json.loads(path.read_text())
-            if 'file' not in self.stats:
-                self.stats['file'] = {}
-            if 'user' not in self.stats:
-                self.stats['user'] = {}
+            self.stats = self.default_stats.copy()
+            self.stats.update(json.loads(path.read_text()))
         except FileNotFoundError:
             self.log(f'Statistics file does not exist yet. Creating "{path}"')
             self.save_stats()
@@ -248,6 +247,9 @@ Only files that have been uploaded more than this will be shown on the statistic
         except: # noqa
             self.log(f'Could not get file info for "{real_path}"')
             stat = None
+
+        weekday = datetime.now().weekday()
+        self.stats['day'][weekday] = self.stats['day'][weekday] + 1
 
         self.stats['file'][real_path] = {
             'total': info.get('total', 0) + 1,
@@ -444,6 +446,11 @@ Only files that have been uploaded more than this will be shown on the statistic
                                      new=tag('kbd', self.update_version[1:])
                                  ), href=self.release_url + self.update_version, target='_blank')
 
+        max_day = max(self.stats['day'])
+        for index, day in enumerate(self.stats['day']):
+            info[f'day_{index}'] = day
+            info[f'day_{index}_p'] = 3 + (97 / max_day * day)
+
         user_threshold = self.user_threshold() if user_threshold is None else user_threshold
         file_threshold = self.file_threshold() if file_threshold is None else file_threshold
         info.update({
@@ -482,9 +489,8 @@ Only files that have been uploaded more than this will be shown on the statistic
         backup = Path(self.settings['stats_file']).with_suffix('.bak.json')
         self.save_stats(backup)
         self.log(f'Created a backup at "{backup}"')
-        self.stats = {}
+        self.stats = self.default_stats.copy()
         self.save_stats()
-        self.load_stats()
         self.log('Statistics have been reset')
         return returncode['zap']
 
