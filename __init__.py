@@ -446,7 +446,7 @@ Only files that have been uploaded more than this will be shown on the statistic
                                      new=tag('kbd', self.update_version[1:])
                                  ), href=self.release_url + self.update_version, target='_blank')
 
-        max_day = max(self.stats['day'])
+        max_day = max(self.stats['day']) or 1
         for index, day in enumerate(self.stats['day']):
             info[f'day_{index}'] = day
             info[f'day_{index}_p'] = 3 + (97 / max_day * day)
