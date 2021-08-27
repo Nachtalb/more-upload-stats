@@ -19,6 +19,8 @@ __version__ = (BASE_PATH / 'PLUGININFO').read_text().split('\n')[0].split('=')[1
 
 def tag(tagname, c='', **data):
     tags = tagname.split()
+    if (tooltip := data.get('data_tooltip')) and 'title' not in data:
+        data['title'] = tooltip
     if len(tags) > 1:
         tags[-1] = tag(tags[-1], c, **data)
         return reduce(lambda c, o: tag(o, c), tags[::-1])
@@ -408,9 +410,9 @@ Only files that have been uploaded more than this will be shown on the statistic
             if len(data) >= index + 1:
                 title, score, link_id = data[index]
             if link_id:
-                html += li(a(mark(span(title)) + small(score), href=link_id))
+                html += li(a(small(f'{score} ') + span(span(title)), href=link_id))
             else:
-                html += li(mark(span(title)) + small(score))
+                html += li(small(f'{score} ') + span(span(title)))
         return html
 
     def user_ranking(self):

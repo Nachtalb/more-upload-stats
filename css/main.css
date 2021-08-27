@@ -26,8 +26,32 @@
        url('../fonts/raleway-v22-latin-600.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
+:root {
+  --main-light: #eee;
+  --main-dark: #2B101F;
+
+  --c1: #FA6855;
+  --c2: #EC5F52;
+  --c3: #DE554F;
+  --c4: #D04D4C;
+  --c5: #C24448;
+  --c6: #B43945;
+  --c7: #A63142;
+
+  --main-bg: var(--main-light);
+  --main-fg: var(--main-dark);
+  --link-fg: var(--c1);
+  --link-fg-hover: var(--c5);
+}
+
+
+#theme:checked + .wrapper {
+  --main-bg: var(--main-dark);
+  --main-fg: var(--main-light);
+}
+
 *, *::before, *::after {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 h1 small {
@@ -35,11 +59,11 @@ h1 small {
 }
 
 a {
-  color: #fa6855;
+  color: var(--link-fg);
 }
 
 a:hover {
-  color: #c24448;
+  color: var(--link-fg-hover);
 }
 
 abbr {
@@ -54,14 +78,11 @@ abbr {
 body .wrapper {
   margin: 0;
   padding: 0;
-  background: #eee;
+  background: var(--main-bg);
+  color: var(--main-fg);
   transition: ease-in-out all 0.5s;
 }
 
-#theme:checked + .wrapper {
-  background-color: #111;
-  color: #ddd;
-}
 
 #theme:checked + .wrapper .icon-contrast {
   transform: rotate(900deg);
@@ -69,14 +90,14 @@ body .wrapper {
 }
 
 .icon-contrast {
-    display: block;
-    width: 25px;
-    height: 25px;
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    cursor: pointer;
-    transition: ease-in-out all 0.5s;
+  display: block;
+  width: 25px;
+  height: 25px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+  transition: ease-in-out all 0.5s;
 }
 
 h1 {
@@ -88,62 +109,76 @@ h1 {
 .chart {
   list-style: none;
   padding: 0;
+  position: relative;
 }
 
 .chart li {
-  background: #fa6855;
+  /* background: var(--c1); */
   font-size: 14px;
   height: 54px;
-  padding: 14px 0 18px 0;
+  padding: 0;
   border-radius: 0 10px 10px 0;
   margin: 0;
   white-space: nowrap;
-  transition: eas;
   box-shadow: 0 0 #ed6051;
-  transition: all 0.3s ease-in-out;
+  transition: margin 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
 }
 
-.chart li::before {
-  content: attr(data-amount);
+.chart li .day {
+  text-align: right;
+  position: absolute;
+  right: 100%;
+  height: inherit;
+  display: flex;
+  align-items: center;
+  padding-right: 1em;
+}
+
+.chart li .total {
   margin: 0 1em;
   width: auto;
   height: 20px;
   line-height: 19px;
-  color: #c24448;
+  color: var(--c5);
   background: #fff;
   border-radius: 20px;
-  text-align: center;
   display: inline-block;
   padding: 0 1em;
   min-width: 52px;
   text-align: center;
-}
-
-.chart li span {
-    text-align: right;
-    position: absolute;
-    right: 50%;
+  z-index: 1;
 }
 
 .chart li:hover {
-    margin-left: 1em;
+  margin-left: 1em;
 }
 
-.chart li:nth-child(1) { background: #fa6855; box-shadow: 0 0 #fa6855; }
-.chart li:nth-child(2) { background: #ed6051; box-shadow: 0 0 #ed6051; }
-.chart li:nth-child(3) { background: #e0584c; box-shadow: 0 0 #e0584c; }
-.chart li:nth-child(4) { background: #d35048; box-shadow: 0 0 #d35048; }
-.chart li:nth-child(5) { background: #c64943; box-shadow: 0 0 #c64943; }
-.chart li:nth-child(6) { background: #ba413f; box-shadow: 0 0 #ba413f; }
-.chart li:nth-child(7) { background: #ad3a3a; box-shadow: 0 0 #ad3a3a; }
+.chart li::before {
+  content: "";
+  background: inherit;
+  height: 54px;
+  min-width: inherit;
+  position: absolute;
+  left: 0;
+  transition: padding 0.2s ease-in-out;
+  border-radius: 0 10px 10px 0;
+  box-sizing: content-box;
+}
 
-.chart li:nth-child(1):hover { box-shadow: -1em 0 #fa6855; }
-.chart li:nth-child(2):hover { box-shadow: -1em 0 #ed6051; }
-.chart li:nth-child(3):hover { box-shadow: -1em 0 #e0584c; }
-.chart li:nth-child(4):hover { box-shadow: -1em 0 #d35048; }
-.chart li:nth-child(5):hover { box-shadow: -1em 0 #c64943; }
-.chart li:nth-child(6):hover { box-shadow: -1em 0 #ba413f; }
-.chart li:nth-child(7):hover { box-shadow: -1em 0 #ad3a3a; }
+.chart li:hover::before {
+  padding-left: 1em;
+}
+
+
+.chart li:nth-child(1)::before { background: var(--c1); }
+.chart li:nth-child(2)::before { background: var(--c2); }
+.chart li:nth-child(3)::before {background: var(--c3);}
+.chart li:nth-child(4)::before { background: var(--c4); }
+.chart li:nth-child(5)::before { background: var(--c5); }
+.chart li:nth-child(6)::before { background: var(--c6); }
+.chart li:nth-child(7)::before { background: var(--c7); }
 
 /*--------------------
 Leaderboard
@@ -157,12 +192,14 @@ Leaderboard
   transition: ease-in-out filter 0.5s;
   margin-bottom: 2.5rem;
 }
+
 .leaderboard h3 {
   font-size: 18px;
   color: #e1e1e1;
   padding: 12px 13px 18px;
   margin: 0;
 }
+
 .leaderboard h3 span {
   width: 25px;
   height: 26px;
@@ -173,11 +210,13 @@ Leaderboard
   vertical-align: baseline;
   margin-bottom: -5px;
 }
+
 .leaderboard ol {
   counter-reset: leaderboard;
   margin: 0;
   list-style: none;
 }
+
 .leaderboard ol li {
   position: relative;
   z-index: 1;
@@ -190,6 +229,7 @@ Leaderboard
   transform: translateZ(0) scale(1, 1);
   margin: 0;
 }
+
 .leaderboard ol li::before {
   content: counter(leaderboard);
   position: absolute;
@@ -199,15 +239,17 @@ Leaderboard
   width: 20px;
   height: 20px;
   line-height: 19px;
-  color: #c24448;
+  color: var(--c5);
   background: #fff;
   border-radius: 20px;
   text-align: center;
 }
+
 .leaderboard ol li a {
   text-decoration: none;
 }
-.leaderboard ol li mark {
+
+.leaderboard ol li a > span {
   position: absolute;
   z-index: 2;
   top: 0;
@@ -220,7 +262,8 @@ Leaderboard
   color: #fff;
   box-sizing: border-box;
 }
-.leaderboard ol li mark span {
+
+.leaderboard ol li a > span span {
   padding-right: 2em;
   box-sizing: border-box;
   overflow: hidden;
@@ -230,23 +273,25 @@ Leaderboard
   display: inline-block;
 }
 
-.leaderboard ol li mark::before, .leaderboard ol li mark::after {
+.leaderboard ol li a > span::before, .leaderboard ol li a > span::after {
   content: "";
   position: absolute;
   z-index: 1;
   bottom: -11px;
   left: -13px;
-  border-top: 10px solid #c24448;
+  border-top: 10px solid var(--c5);
   border-left: 13px solid transparent;
   transition: all 0.1s ease-in-out;
   opacity: 0;
 }
-.leaderboard ol li mark::after {
+
+.leaderboard ol li a > span::after {
   left: auto;
   right: -13px;
   border-left: none;
   border-right: 13px solid transparent;
 }
+
 .leaderboard ol li small {
   position: relative;
   z-index: 2;
@@ -255,6 +300,7 @@ Leaderboard
   color: white;
   font-size: smaller;
 }
+
 .leaderboard ol li::after {
   content: "";
   position: absolute;
@@ -263,79 +309,46 @@ Leaderboard
   left: 0;
   width: 100%;
   height: 100%;
-  background: #fa6855;
+  background: var(--c1);
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease-in-out;
   opacity: 0;
 }
-.leaderboard ol li:nth-child(1) {
-  background: #fa6855;
-}
-.leaderboard ol li:nth-child(1)::after {
-  background: #fa6855;
-}
-.leaderboard ol li:nth-child(2) {
-  background: #e0574f;
-}
-.leaderboard ol li:nth-child(2)::after {
-  background: #e0574f;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
-}
-.leaderboard ol li:nth-child(2) mark::before, .leaderboard ol li:nth-child(2) mark::after {
-  border-top: 6px solid #ba4741;
-  bottom: -7px;
-}
-.leaderboard ol li:nth-child(3) {
-  background: #d7514d;
-}
-.leaderboard ol li:nth-child(3)::after {
-  background: #d7514d;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.11);
-}
-.leaderboard ol li:nth-child(3) mark::before, .leaderboard ol li:nth-child(3) mark::after {
-  border-top: 2px solid #b0433f;
-  bottom: -3px;
-}
-.leaderboard ol li:nth-child(4) {
-  background: #cd4b4b;
-}
-.leaderboard ol li:nth-child(4)::after {
-  background: #cd4b4b;
-  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.15);
-}
-.leaderboard ol li:nth-child(4) mark::before, .leaderboard ol li:nth-child(4) mark::after {
-  top: -7px;
-  bottom: auto;
-  border-top: none;
-  border-bottom: 6px solid #a63d3d;
-}
-.leaderboard ol li:nth-child(5) {
-  background: #c24448;
-  border-radius: 0 0 10px 10px;
-}
-.leaderboard ol li:nth-child(5)::after {
-  background: #c24448;
-  box-shadow: 0 -2.5px 0 rgba(0, 0, 0, 0.12);
-  border-radius: 0 0 10px 10px;
-}
-.leaderboard ol li:nth-child(5) mark::before, .leaderboard ol li:nth-child(5) mark::after {
-  top: -9px;
-  bottom: auto;
-  border-top: none;
-  border-bottom: 8px solid #993639;
-}
+
+.leaderboard ol li:nth-child(1) { background: var(--c1); }
+.leaderboard ol li:nth-child(1)::after { background: var(--c1); }
+
+.leaderboard ol li:nth-child(2) { background: var(--c2); }
+.leaderboard ol li:nth-child(2)::after { background: var(--c2); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08); }
+.leaderboard ol li:nth-child(2) a > span::before, .leaderboard ol li:nth-child(2) a > span::after { border-top: 6px solid #ba4741; bottom: -7px; }
+
+.leaderboard ol li:nth-child(3) { background: var(--c3); }
+.leaderboard ol li:nth-child(3)::after { background: var(--c3); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.11); }
+.leaderboard ol li:nth-child(3) a > span::before, .leaderboard ol li:nth-child(3) a > span::after { border-top: 2px solid #b0433f; bottom: -3px; }
+
+.leaderboard ol li:nth-child(4) { background: var(--c4); }
+.leaderboard ol li:nth-child(4)::after { background: var(--c4); box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.15); }
+.leaderboard ol li:nth-child(4) a > span::before, .leaderboard ol li:nth-child(4) a > span::after { top: -7px; bottom: auto; border-top: none; border-bottom: 6px solid #a63d3d; }
+
+.leaderboard ol li:nth-child(5) { background: var(--c5); border-radius: 0 0 10px 10px; }
+.leaderboard ol li:nth-child(5)::after { background: var(--c5); box-shadow: 0 -2.5px 0 rgba(0, 0, 0, 0.12); border-radius: 0 0 10px 10px; }
+.leaderboard ol li:nth-child(5) a > span::before, .leaderboard ol li:nth-child(5) a > span::after { top: -9px; bottom: auto; border-top: none; border-bottom: 8px solid #993639; }
+
 .leaderboard ol li:hover {
   z-index: 2;
   overflow: visible;
 }
+
 .leaderboard ol li:hover::after {
   opacity: 1;
   transform: scaleX(1.06) scaleY(1.03);
 }
-.leaderboard ol li:hover mark::before, .leaderboard ol li:hover mark::after {
+
+.leaderboard ol li:hover a > span::before, .leaderboard ol li:hover a > span::after {
   opacity: 1;
   transition: all 0.35s ease-in-out;
 }
+
 
 .the-most {
   position: fixed;
@@ -358,6 +371,7 @@ Leaderboard
 
 [data-tooltip] {
   position: relative;
+  pointer-events: visible;
 }
 
 [data-tooltip]::before, [data-tooltip]::after {

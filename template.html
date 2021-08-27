@@ -69,13 +69,13 @@
           <div class="column one-half">
             <h2 id="PerDay">Per Day</h2>
             <ul class="chart">
-              <li class="bar" style="width: {day_0_p}%" data-amount="{day_0}"><span>Monday</span></li>
-              <li class="bar" style="width: {day_1_p}%" data-amount="{day_1}"><span>Tuesday</span></li>
-              <li class="bar" style="width: {day_2_p}%" data-amount="{day_2}"><span>Wednesday</span></li>
-              <li class="bar" style="width: {day_3_p}%" data-amount="{day_3}"><span>Thursday</span></li>
-              <li class="bar" style="width: {day_4_p}%" data-amount="{day_4}"><span>Friday</span></li>
-              <li class="bar" style="width: {day_5_p}%" data-amount="{day_5}"><span>Saturday</span></li>
-              <li class="bar" style="width: {day_6_p}%" data-amount="{day_6}"><span>Sunday</span></li>
+              <li class="bar" style="min-width: {day_0_p}%"><span class="total">{day_0}</span> <span class="day">Monday</span></li>
+              <li class="bar" style="min-width: {day_1_p}%"><span class="total">{day_1}</span> <span class="day">Tuesday</span></li>
+              <li class="bar" style="min-width: {day_2_p}%"><span class="total">{day_2}</span> <span class="day">Wednesday</span></li>
+              <li class="bar" style="min-width: {day_3_p}%"><span class="total">{day_3}</span> <span class="day">Thursday</span></li>
+              <li class="bar" style="min-width: {day_4_p}%"><span class="total">{day_4}</span> <span class="day">Friday</span></li>
+              <li class="bar" style="min-width: {day_5_p}%"><span class="total">{day_5}</span> <span class="day">Saturday</span></li>
+              <li class="bar" style="min-width: {day_6_p}%"><span class="total">{day_6}</span> <span class="day">Sunday</span></li>
             </ul>
           </div>
         </div>
@@ -122,7 +122,9 @@
       </div>
     </div>
   </div>
-  <script type="application/javascript" src="{BASE}js/sorttable.js"></script>
   </div>
+  <script type="application/javascript" src="{BASE}js/sorttable.js"></script>
+  <!-- So we don't get duplicate tooltips but still get tooltips in case JS and CSS is disabled -->
+  <script type="application/javascript">document.querySelectorAll('[data-tooltip]').forEach((e) => e.title = '')</script>
 </body>
 </html>
