@@ -109,7 +109,7 @@ class PeriodicJob(Thread):
 
 class Plugin(BasePlugin):
 
-    __name__ = 'Upload Statistics'
+    __name__ = 'Upload Statistics DEV'
     settings = {
         'stats_file': str(BASE_PATH / 'stats.json'),
         'stats_html_file': str(BASE_PATH / 'index.html'),
@@ -497,6 +497,6 @@ Only files that have been uploaded more than this will be shown on the statistic
         return returncode['zap']
 
     __privatecommands__ = __publiccommands__ = [
-        ('upstats', open_stats),
-        ('upstats-reset', reset_stats)
+        ('dupstats', open_stats),
+        ('dupstats-reset', reset_stats)
     ]
