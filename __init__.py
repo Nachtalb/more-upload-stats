@@ -470,20 +470,42 @@ Only files that have been uploaded more than this will be shown on the statistic
         self.log(f'Statistics generated and saved to "{file}"')
         return file
 
-    def open_stats(self, _, args):
-        args = tuple(filter(None, map(str.strip, args.split())))
+    def create_m3u(self, songs=None, top_x=25):
+        m3u = '#EXTM3U\n#EXTENC: UTF-8\n'
+        if not songs:
+            songs = sorted(self.stats['file'], key=lambda i: self.stats['file'][i]['total'], reverse=True)[:top_x]
+            m3u += f'#PLAYLIST:Top {top_x}\n'
+        for song in songs:
+            m3u += song + '\n'
+
+        file = BASE_PATH / 'playlist.m3u'
+        file.write_text(m3u, encoding='utf-8')
+        self.log(f'Playlist generated and saved to "{file}"')
+        return file
+
+    def args(self, argstring):
+        return tuple(filter(None, map(str.strip, argstring.split())))
+
+    def create_stats(self, args=[]):
         try:
             thresholds = tuple(map(int, args[:2]))
         except ValueError:
             thresholds = []
 
+        self.create_m3u()
         if thresholds:
             with NamedTemporaryFile('w', encoding='utf-8', suffix='.html', delete=False) as file:
                 file.write(self.build_html(*thresholds))
-                filename = file.name
+                return file.name
         else:
-            filename = self.update_index_html()
+            return self.update_index_html()
 
+    def update_stats(self, _, args):
+        self.create_stats(self.args(args))
+        return returncode['zap']
+
+    def open_stats(self, _, args):
+        filename = self.create_stats(self.args(args))
         webbrowser.open(str(filename))
         return returncode['zap']
 
@@ -498,5 +520,6 @@ Only files that have been uploaded more than this will be shown on the statistic
 
     __privatecommands__ = __publiccommands__ = [
         ('dupstats', open_stats),
+        ('dupstats-update', update_stats),
         ('dupstats-reset', reset_stats)
     ]
