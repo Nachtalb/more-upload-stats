@@ -82,7 +82,7 @@ class PeriodicJob(Thread):
 
     def time_to_work(self):
         delay = self.delay() if callable(self.delay) else self.delay
-        return self.__pause.wait() and (not self.last_run or time() - self.last_run > delay)
+        return self.__pause.wait() and delay and (not self.last_run or time() - self.last_run > delay)
 
     def run(self):
         if self.before_start:
