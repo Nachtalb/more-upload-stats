@@ -14,6 +14,7 @@ from threading import Event, Thread
 from time import sleep, time
 from urllib import request
 import webbrowser
+from mimetypes import guess_type
 
 from pynicotine.pluginsystem import BasePlugin, returncode
 
@@ -152,6 +153,7 @@ class Plugin(BasePlugin):
     settings = {
         'stats_file': str(BASE_PATH / 'stats.json'),
         'stats_html_file': str(BASE_PATH / 'index.html'),
+        'playlist_file': str(BASE_PATH / 'playlist.m3u'),
         'dark_theme': True,
         'check_update': True,
         'auto_regenerate': 30,
@@ -170,6 +172,12 @@ JSON file where containing the raw data''',
         'stats_html_file': {
             'description': '''Statistic page file
 HTML file presenting the data in a human readable way''',
+            'type': 'file',
+            'chooser': 'file',
+        },
+        'playlist_file': {
+            'description': '''Playlist file
+.m3u playlist file of the top 25 most uploaded songs''',
             'type': 'file',
             'chooser': 'file',
         },
@@ -509,15 +517,24 @@ Only files that have been uploaded more than this will be shown on the statistic
         self.log(f'Statistics generated and saved to "{file}"')
         return file
 
-    def create_m3u(self, songs=None, top_x=25):
+    def create_m3u(self, songs=[], top_x=25):
         m3u = '#EXTM3U\n#EXTENC: UTF-8\n'
         if not songs:
-            songs = sorted(self.stats['file'], key=lambda i: self.stats['file'][i]['total'], reverse=True)[:top_x]
-            m3u += f'#PLAYLIST:Top {top_x}\n'
+            all_songs = sorted(self.stats['file'],
+                               key=lambda i: self.stats['file'][i]['total'],
+                               reverse=True)
+            for song in all_songs:
+                type = guess_type(song)[0]
+                if type and type.startswith('audio'):
+                    songs.append(song)
+                    if len(songs) == top_x:
+                        break
+
+            m3u += f'#PLAYLIST:Top {len(songs)}\n'
         for song in songs:
             m3u += song + '\n'
 
-        file = BASE_PATH / 'playlist.m3u'
+        file = Path(self.settings['playlist_file'])
         file.write_text(m3u, encoding='utf-8')
         self.log(f'Playlist generated and saved to "{file}"')
         return file
