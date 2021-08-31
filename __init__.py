@@ -76,17 +76,17 @@ def startfile(file):
 
 def command(func):
     @wraps(func)
-    def wrapper(self, initiator=None, argstring=None, *args, **kwargs):
+    def wrapper(self, initiator=None, argstring=None, *_args, **_kwargs):
         argspec = inspect.signature(func)
-        command_args = list(filter(None, map(str2num, map(str.strip, (argstring or '').split()))))
+        command_args = list(map(str2num, filter(None, map(str.strip, (argstring or '').split()))))
         extra_args = []
 
-        if 'initiator' in argspec.parameters and 'initiator' not in kwargs and initiator is not None:  # noqa
+        if 'initiator' in argspec.parameters and 'initiator' not in _kwargs and initiator is not None:  # noqa
             extra_args.append(initiator)
-        if 'args' in argspec.parameters and 'args' not in kwargs and argstring is not None:
+        if 'args' in argspec.parameters and 'args' not in _kwargs and command_args:
             extra_args.append(command_args)
 
-        return func(self, *extra_args, *args, **kwargs)
+        return func(self, *extra_args, *_args, **_kwargs)
     return wrapper
 
 
@@ -547,11 +547,12 @@ Only files that have been uploaded more than this will be shown on the statistic
         return file
 
     @command
-    def update_stats(self, args=[], page=True, playlist=True):
+    def update_stats(self, initiator=None, args=None, page=True, playlist=True):
         if playlist:
             self.create_m3u()
 
         if page:
+            args = args or []
             try:
                 thresholds = tuple(map(int, args[:2]))
             except ValueError:
@@ -560,14 +561,19 @@ Only files that have been uploaded more than this will be shown on the statistic
             if thresholds:
                 with NamedTemporaryFile('w', encoding='utf-8', suffix='.html', delete=False) as file:
                     file.write(self.build_html(*thresholds))
+                    filename = file.name
             else:
-                self.update_index_html()
+                filename = self.update_index_html()
+
+            if not initiator:
+                return filename
         return returncode['zap']
 
     @command
     def open_stats(self, page=True, playlist=True):
         if page:
-            webbrowser.open(self.settings['stats_html_file'])
+            filename = page if isinstance(page, str) else self.settings['stats_html_file']
+            webbrowser.open(filename)
         if playlist:
             startfile(self.settings['playlist_file'])
 
@@ -578,8 +584,8 @@ Only files that have been uploaded more than this will be shown on the statistic
                         create_playlist=True,
                         open_page=True,
                         open_playlist=False):
-        self.update_stats(args=args, page=create_page, playlist=create_playlist)
-        self.open_stats(page=open_page, playlist=open_playlist)
+        filename = self.update_stats(args=args, page=create_page, playlist=create_playlist)
+        self.open_stats(page=filename if filename and open_page else open_page, playlist=open_playlist)
         return returncode['zap']
 
     @command
