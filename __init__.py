@@ -85,7 +85,7 @@ def command(func):
         if 'args' in argspec.parameters and 'args' not in kwargs and argstring is not None:
             extra_args.append(command_args)
 
-        return func(self, *extra_args, *args, *kwargs)
+        return func(self, *extra_args, *args, **kwargs)
     return wrapper
 
 
