@@ -32,6 +32,7 @@ gen $new_version $new_authors $new_name $new_description
 
 sed -i -e "s/__name__ = '$p_name'/__name__ = '$new_name'/" __init__.py
 sed -i -e "s/'dupstats/'upstats/g" __init__.py
+sed -i -re "s/'dup(['-])/'up\\1/g" __init__.py
 
 git add PLUGININFO __init__.py
 git diff --staged
@@ -59,6 +60,7 @@ set -l dev_name "$new_name DEV"
 gen $dev_version $new_authors $dev_name $new_description
 sed -i -e "s/__name__ = '$new_name'/__name__ = '$dev_name'/" __init__.py
 sed -i -e "s/'upstats/'dupstats/g" __init__.py
+sed -i -re "s/'up(['-])/'dup\1/g" __init__.py
 echo "Back to development $dev_version"
 
 git add PLUGININFO __init__.py
