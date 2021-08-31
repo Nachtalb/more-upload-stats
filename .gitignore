@@ -1,6 +1,7 @@
 stats.json
 stats.bak.json
 index.html
+playlist.m3u
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,virtualenv,vim,windows,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,virtualenv,vim,windows,linux
