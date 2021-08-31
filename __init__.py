@@ -149,7 +149,7 @@ class PeriodicJob(Thread):
 
 class Plugin(BasePlugin):
 
-    __name__ = 'Upload Statistics DEV'
+    __name__ = 'Upload Statistics'
     settings = {
         'stats_file': str(BASE_PATH / 'stats.json'),
         'stats_html_file': str(BASE_PATH / 'index.html'),
@@ -599,14 +599,14 @@ Only files that have been uploaded more than this will be shown on the statistic
         return returncode['zap']
 
     __publiccommands__ = __privatecommands__ = [
-        ('dupstats', update_and_open),
-        ('dup', update_and_open),
-        ('dup-playlist', partial(update_and_open, create_page=False, open_page=False, open_playlist=True)),
-        ('dup-page', partial(update_and_open, create_playlist=False)),
-        ('dup-update', partial(update_and_open, open_page=False)),
-        ('dup-reset', reset_stats),
-        ('dup-open-page', partial(open_stats, playlist=False)),
-        ('dup-open-playlist', partial(open_stats, page=False)),
-        ('dup-update-page', partial(update_stats, playlist=False)),
-        ('dup-update-playlist', partial(update_stats, page=False)),
+        ('upstats', update_and_open),
+        ('up', update_and_open),
+        ('up-playlist', partial(update_and_open, create_page=False, open_page=False, open_playlist=True)),
+        ('up-page', partial(update_and_open, create_playlist=False)),
+        ('up-update', partial(update_and_open, open_page=False)),
+        ('up-reset', reset_stats),
+        ('up-open-page', partial(open_stats, playlist=False)),
+        ('up-open-playlist', partial(open_stats, page=False)),
+        ('up-update-page', partial(update_stats, playlist=False)),
+        ('up-update-playlist', partial(update_stats, page=False)),
     ]
