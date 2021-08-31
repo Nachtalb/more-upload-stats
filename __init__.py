@@ -470,6 +470,12 @@ Only files that have been uploaded more than this will be shown on the statistic
         return self.ranking(tuple(map(lambda i: (Path(i[0]).name, i[1]['total'], '#file-' + id_string(i[0])),
                                       self.stats['file'].items())))
 
+    def icons(self):
+        icons = ''
+        for icon in (BASE_PATH / 'images').glob('*.svg'):
+            icons += f'.icon-{icon.stem} {{ background-image: url("file:///{BASE_PATH}/images/{icon.name}"); }}'
+        return tag('style', icons.replace('\\', '/'))
+
     def build_html(self, user_threshold=None, file_threshold=None):
         template = (BASE_PATH / 'template.html').read_text()
 
@@ -483,6 +489,7 @@ Only files that have been uploaded more than this will be shown on the statistic
             'stats_link': self.stats_link(),
             'userranking': self.user_ranking(),
             'fileranking': self.file_ranking(),
+            'icons': self.icons()
         }
 
         if self.settings['auto_refresh'] and user_threshold is file_threshold is None:
