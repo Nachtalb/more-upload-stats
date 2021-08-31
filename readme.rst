@@ -27,13 +27,13 @@ opened plugin settings.
 Usage
 -----
 
-- Type ``/upstats`` into a chat message and hit enter.
+- Type ``/up`` into a chat message and hit enter.
 
 - If you want to temporarely disable or change the thresholds you can
-  do so like this: ``/upstats 0 2``. The values are user and file
+  do so like this: ``/up 0 2``. The values are user and file
   threshold respectively.
 
-- Use ``/upstats-reset`` to reset the statistics (a backup will be created beforhand).
+- Use ``/up-reset`` to reset the statistics (a backup will be created beforhand).
 
 
 Settings
