@@ -1,10 +1,14 @@
 import base64
 from datetime import datetime
-from functools import reduce
+from functools import partial, reduce, wraps
 import hashlib
+import inspect
 import json
+import os
 from pathlib import Path
+import platform
 from statistics import mean, median
+import subprocess
 from tempfile import NamedTemporaryFile
 from threading import Event, Thread
 from time import sleep, time
@@ -58,6 +62,41 @@ def id_string(string):
 
 def readable_size_html(num):
     return abbr(readable_size(num), data_tooltip=format(num, '.2f') if isinstance(num, float) else num)
+
+
+def startfile(file):
+    if platform.system() == 'Darwin':       # macOS
+        subprocess.call(('open', file))
+    elif platform.system() == 'Windows':    # Windows
+        os.startfile(file)  # type: ignore
+    else:                                   # linux variants
+        subprocess.call(('xdg-open', file))
+
+
+def command(func):
+    @wraps(func)
+    def wrapper(self, initiator=None, argstring=None, *args, **kwargs):
+        argspec = inspect.signature(func)
+        command_args = list(filter(None, map(str2num, map(str.strip, (argstring or '').split()))))
+        extra_args = []
+
+        if 'initiator' in argspec.parameters and 'initiator' not in kwargs and initiator is not None:  # noqa
+            extra_args.append(initiator)
+        if 'args' in argspec.parameters and 'args' not in kwargs and argstring is not None:
+            extra_args.append(command_args)
+
+        return func(self, *extra_args, *args, *kwargs)
+    return wrapper
+
+
+def str2num(string):
+    if string.isdigit():
+        return int(string)
+    try:
+        string = float(string)
+    except ValueError:
+        pass
+    return string
 
 
 class PeriodicJob(Thread):
@@ -483,33 +522,44 @@ Only files that have been uploaded more than this will be shown on the statistic
         self.log(f'Playlist generated and saved to "{file}"')
         return file
 
-    def args(self, argstring):
-        return tuple(filter(None, map(str.strip, argstring.split())))
+    @command
+    def update_stats(self, args=[], page=True, playlist=True):
+        if playlist:
+            self.create_m3u()
 
-    def create_stats(self, args=[]):
-        try:
-            thresholds = tuple(map(int, args[:2]))
-        except ValueError:
-            thresholds = []
+        if page:
+            try:
+                thresholds = tuple(map(int, args[:2]))
+            except ValueError:
+                thresholds = []
 
-        self.create_m3u()
-        if thresholds:
-            with NamedTemporaryFile('w', encoding='utf-8', suffix='.html', delete=False) as file:
-                file.write(self.build_html(*thresholds))
-                return file.name
-        else:
-            return self.update_index_html()
-
-    def update_stats(self, _, args):
-        self.create_stats(self.args(args))
+            if thresholds:
+                with NamedTemporaryFile('w', encoding='utf-8', suffix='.html', delete=False) as file:
+                    file.write(self.build_html(*thresholds))
+            else:
+                self.update_index_html()
         return returncode['zap']
 
-    def open_stats(self, _, args):
-        filename = self.create_stats(self.args(args))
-        webbrowser.open(str(filename))
+    @command
+    def open_stats(self, page=True, playlist=True):
+        if page:
+            webbrowser.open(self.settings['stats_html_file'])
+        if playlist:
+            startfile(self.settings['playlist_file'])
+
+    @command
+    def update_and_open(self,
+                        args=None,
+                        create_page=True,
+                        create_playlist=True,
+                        open_page=True,
+                        open_playlist=False):
+        self.update_stats(args=args, page=create_page, playlist=create_playlist)
+        self.open_stats(page=open_page, playlist=open_playlist)
         return returncode['zap']
 
-    def reset_stats(self, *_):
+    @command
+    def reset_stats(self):
         backup = Path(self.settings['stats_file']).with_suffix('.bak.json')
         self.save_stats(backup)
         self.log(f'Created a backup at "{backup}"')
@@ -518,8 +568,15 @@ Only files that have been uploaded more than this will be shown on the statistic
         self.log('Statistics have been reset')
         return returncode['zap']
 
-    __privatecommands__ = __publiccommands__ = [
-        ('dupstats', open_stats),
-        ('dupstats-update', update_stats),
-        ('dupstats-reset', reset_stats)
+    __publiccommands__ = __privatecommands__ = [
+        ('dupstats', update_and_open),
+        ('dup', update_and_open),
+        ('dup-playlist', partial(update_and_open, create_page=False, open_page=False, open_playlist=True)),
+        ('dup-page', partial(update_and_open, create_playlist=False)),
+        ('dup-update', partial(update_and_open, open_page=False)),
+        ('dup-reset', reset_stats),
+        ('dup-open-page', partial(open_stats, playlist=False)),
+        ('dup-open-playlist', partial(open_stats, page=False)),
+        ('dup-update-page', partial(update_stats, playlist=False)),
+        ('dup-update-playlist', partial(update_stats, page=False)),
     ]
