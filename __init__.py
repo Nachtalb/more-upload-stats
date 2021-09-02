@@ -1,3 +1,4 @@
+import ast
 import base64
 from base64 import urlsafe_b64encode
 from datetime import datetime
@@ -9,6 +10,7 @@ from mimetypes import guess_type
 import os
 from pathlib import Path
 import platform
+import re
 from statistics import mean, median
 import subprocess
 from tempfile import NamedTemporaryFile
@@ -17,10 +19,228 @@ from time import sleep, time
 from urllib import request
 import webbrowser
 
-from pynicotine.pluginsystem import BasePlugin, returncode
+from pynicotine.pluginsystem import returncode
+from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 
 BASE_PATH = Path(__file__).parent
-__version__ = (BASE_PATH / 'PLUGININFO').read_text().split('\n')[0].split('=')[1].replace('"', '')  # noqa
+config_file = BASE_PATH / 'PLUGININFO'
+CONFIG = dict([(key, ast.literal_eval(value) if value.startswith('[') else value[1:-1].replace('\\n', '\n'))
+               for key, value in map(lambda i: i.split('=', 1), filter(None, config_file.read_text().split('\n')))])
+
+__version__ = CONFIG.get('Version', '0.0.1')
+
+
+class Version:
+    def __init__(self, major, minor, patch, dev=None):
+        self.major = major
+        self.minor = minor
+        self.patch = patch
+        self.dev = dev
+
+    @property
+    def astuple(self):
+        return self.major, self.minor, self.patch, self.dev
+
+    @staticmethod
+    def parse(*version):
+        if len(version) == 1 and isinstance(version[0], str):
+            match = re.match(r'v?(\d+)\.?(\d+)?\.?(\d+)?\.?(\w+)?', version[0])
+            if not match:
+                raise ValueError(f'Version {version} cannot be parsed')
+            version = filter(None, match.groups())
+        version = list(version)
+        version += [0] * (3 - len(version))  # type: ignore
+        if len(version) == 3:
+            version += [None]
+        return Version(*map(int, version[:3]), version[3])  # type: ignore
+
+    def __str__(self):
+        return '.'.join(map(str, self.astuple[:3])) + (self.dev if self.dev is not None else '')
+
+    def __repr__(self):
+        return f'Version({self})'
+
+    def __eq__(self, version: 'Version'):
+        return self.astuple == version.astuple
+
+    def __lt__(self, version: 'Version'):
+        return self.astuple[:3] < version.astuple[:3] or (
+            self.astuple[:3] == version.astuple[:3] and (
+                (self.dev is None and version.dev is not None) or
+                (self.dev is not None and version.dev is not None and self.dev < version.dev)
+            ))
+
+    def __le__(self, v):
+        return self < v or self == v
+
+    def __gt__(self, v):
+        return not self < v
+
+    def __ge__(self, v):
+        return not self < v or self == v
+
+    def __ne__(self, v):
+        return not self == v
+
+
+class PeriodicJob(Thread):
+    __stopped = False
+    last_run = None
+
+    name = ''
+    delay = 1
+    _min_delay = 1
+
+    def __init__(self, delay=None, update=None, name=None, before_start=None):
+        super().__init__(name=name or self.name, daemon=True)
+        self.delay = delay or self.delay
+        self.before_start = before_start
+        self.first_round = Event()
+
+        self.__pause = Event()
+        self.__pause.set()
+
+        if update:
+            self.update = update
+
+    def time_to_work(self):
+        delay = self.delay() if callable(self.delay) else self.delay
+        return self.__pause.wait() and delay and (not self.last_run or time() - self.last_run > delay)
+
+    def run(self):
+        if self.before_start:
+            self.before_start()
+        while not self.__stopped:
+            if self.time_to_work():
+                self.update()
+                self.last_run = time()
+            if not self.first_round.is_set():
+                self.first_round.set()
+            sleep(self._min_delay)
+
+    def stop(self, wait=True):
+        self.__stopped = True
+        if wait and self.is_alive():
+            self.join()
+
+    def pause(self):
+        self.__pause.clear()
+
+    def resume(self):
+        self.__pause.set()
+
+
+class BasePlugin(NBasePlugin):
+    settings = metasettings = {}
+    default_settings = {
+        'check_update': True,
+    }
+    default_metasettings = {
+        'check_update': {
+            'description': '''Check for Updates
+Check for updates on start and periodically''',
+            'type': 'bool',
+        },
+    }
+
+    __name__ = CONFIG.get('Name')
+    update_version = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        settings = self.default_settings
+        settings.update(self.settings)
+        self.settings = settings
+        metasettings = self.default_metasettings
+        metasettings.update(self.metasettings)
+        self.metasettings = metasettings
+
+    def init(self):
+        self.auto_update = PeriodicJob(name='AutoUpdate',
+                                       delay=3600,
+                                       update=self.check_update)
+        self.auto_update.start()
+
+        self.settings_watcher = PeriodicJob(name='SettingsWatcher', update=self.detect_settings_change)
+        self.settings_watcher.start()
+
+        if prefix := CONFIG.get('Prefix'):
+            public_commands = self.__publiccommands__
+            self.__publiccommands__ = []
+            private_commands = self.__privatecommands__
+            self.__privatecommands__ = []
+            for name, callback in public_commands:
+                if name:
+                    name = '-' + name
+                self.__publiccommands__.append((prefix + name, callback))
+            for name, callback in private_commands:
+                if name:
+                    name = '-' + name
+                self.__privatecommands__.append((prefix + name, callback))
+
+        self.log(f'Running version {__version__}')
+
+    @property
+    def update_url(self):
+        repo = CONFIG.get('Repository')
+        if not self.update_version or not repo:
+            return
+        return f'https://github.com/{repo}/releases/tag/{self.update_version}'
+
+    def check_update(self):
+        try:
+            repo = CONFIG.get('Repository')
+            if 'dev' in __version__ or not repo or not self.settings['check_update']:
+                self.update_version = None
+                return
+
+            current_version = Version.parse(__version__)
+
+            with request.urlopen(f'https://api.github.com/repos/{repo}/releases') as response:
+                releases = json.load(response)
+                msg = ''
+                for release in releases:
+                    if release['draft'] or release['prerelease'] or Version.parse(release['tag_name'][1:]) <= current_version:  # noqa
+                        continue
+                    if not msg:
+                        msg += f'New version available (current: {current_version}) at: {release["html_url"]}\n\n'
+                        self.update_version = release['tag_name']
+                    msg += f'{release["name"]}\n{release["body"]}\n\n'
+                if msg:
+                    self.log('\n{border}\n{msg}\n{border}'.format(msg=msg.strip(), border='#' * 80))
+                else:
+                    self.log('No new version available')
+        except Exception as e:
+            self.log(f'ERROR: Could not fetch update: {e}')
+
+    def stop(self):
+        self.auto_update.stop(False)
+        self.settings_watcher.stop(False)
+
+    def shutdown_notification(self):
+        self.stop()
+
+    def disable(self):
+        self.stop()
+
+    def detect_settings_change(self):
+        if not hasattr(self, '_settings_before'):
+            self._settings_before = set(self.settings.items())
+            return
+
+        after = set(self.settings.items())
+        if changes := self._settings_before ^ after:
+            change_dict = {
+                'before': dict(filter(lambda i: i in self._settings_before, changes)),
+                'after': dict(filter(lambda i: i in after, changes))
+            }
+            self.settings_changed(before=self._settings_before,
+                                  after=self.settings,
+                                  change=change_dict)
+            self._settings_before = set(self.settings.items())
+
+    def settings_changed(self, before, after, change):
+        self.log(f'Settings change: {json.dumps(change)}')
 
 
 def tag(tagname, c='', **data):
@@ -101,62 +321,12 @@ def str2num(string):
     return string
 
 
-class PeriodicJob(Thread):
-    __stopped = False
-    last_run = None
-
-    name = ''
-    delay = 1
-    _min_delay = 1
-
-    def __init__(self, delay=None, update=None, name=None, before_start=None):
-        super().__init__(name=name or self.name)
-        self.delay = delay or self.delay
-        self.before_start = before_start
-        self.first_round = Event()
-
-        self.__pause = Event()
-        self.__pause.set()
-
-        if update:
-            self.update = update
-
-    def time_to_work(self):
-        delay = self.delay() if callable(self.delay) else self.delay
-        return self.__pause.wait() and delay and (not self.last_run or time() - self.last_run > delay)
-
-    def run(self):
-        if self.before_start:
-            self.before_start()
-        while not self.__stopped:
-            if self.time_to_work():
-                self.update()
-                self.last_run = time()
-            if not self.first_round.is_set():
-                self.first_round.set()
-            sleep(self._min_delay)
-
-    def stop(self, wait=True):
-        self.__stopped = True
-        if wait and self.is_alive():
-            self.join()
-
-    def pause(self):
-        self.__pause.clear()
-
-    def resume(self):
-        self.__pause.set()
-
-
 class Plugin(BasePlugin):
-
-    __name__ = 'Upload Statistics DEV'
     settings = {
         'stats_file': str(BASE_PATH / 'stats.json'),
         'stats_html_file': str(BASE_PATH / 'index.html'),
         'playlist_file': str(BASE_PATH / 'playlist.m3u'),
         'dark_theme': True,
-        'check_update': True,
         'auto_regenerate': 30,
         'auto_refresh': False,
         'threshold_auto': True,
@@ -181,11 +351,6 @@ HTML file presenting the data in a human readable way''',
 .m3u playlist file of the top 25 most uploaded songs''',
             'type': 'file',
             'chooser': 'file',
-        },
-        'check_update': {
-            'description': '''Check for Updates
-Check for updates on start and periodically''',
-            'type': 'bool',
         },
         'dark_theme': {
             'description': '''Dark Theme
@@ -223,10 +388,6 @@ Only files that have been uploaded more than this will be shown on the statistic
         },
     }
 
-    update_url = 'https://api.github.com/repos/Nachtalb/more-upload-stats/tags'
-    release_url = 'https://github.com/Nachtalb/more-upload-stats/releases/tag/'
-    update_version = None
-
     default_stats = {'file': {}, 'user': {}, 'day': [0, 0, 0, 0, 0, 0, 0]}
 
     def init(self):
@@ -235,11 +396,6 @@ Only files that have been uploaded more than this will be shown on the statistic
 
         self.load_stats()
 
-        self.auto_update = PeriodicJob(name='AutoUpdate',
-                                       delay=3600,
-                                       update=self.check_update)
-        self.auto_update.start()
-
         self.auto_builder = PeriodicJob(name='AutoBuilder',
                                         delay=lambda: self.settings['auto_regenerate'] * 60,
                                         update=self.update_index_html,
@@ -247,33 +403,9 @@ Only files that have been uploaded more than this will be shown on the statistic
         self.auto_builder.start()
         self.log(f'Running version {__version__}')
 
-    def check_update(self):
-        try:
-            if 'dev' in __version__ or not self.settings['check_update']:
-                self.update_version = None
-                return
-
-            self.log('Checking for updates')
-
-            with request.urlopen(self.update_url) as file:
-                latest_info = next(iter(json.load(file)), {})
-                latest_version = latest_info.get('name', '')
-                if latest_version.replace('v', '') != __version__:
-                    self.update_version = latest_version
-                    msg = f'# A new version of "Upload Statistics" is available: {latest_version} {self.release_url}{latest_version}'  # noqa
-                    self.log('\n{border}\n{msg}\n{border}'.format(msg=msg, border='#' * len(msg)))
-        except Exception as e:
-            self.log(f'ERROR: Could not fetch update {e}')
-
     def stop(self):
+        super().stop()
         self.auto_builder.stop(False)
-        self.auto_update.stop(False)
-
-    def disable(self):
-        self.stop()
-
-    def shutdown_notification(self):
-        self.stop()
 
     def load_stats(self):
         path = Path(self.settings['stats_file'])
@@ -501,12 +633,12 @@ Only files that have been uploaded more than this will be shown on the statistic
         if self.settings['auto_refresh'] and user_threshold is file_threshold is None:
             info['head'] = tag('meta', http_equiv='refresh', content=60)
 
-        if self.update_version:
+        if self.update_url and self.update_version:
             info['update'] = tag('h4 a',
                                  'A new update is available. Current: {current} New: {new}'.format(
                                      current=tag('kbd', __version__),
                                      new=tag('kbd', self.update_version[1:])
-                                 ), href=self.release_url + self.update_version, target='_blank')
+                                 ), href=self.update_url + self.update_version, target='_blank')
 
         max_day = max(self.stats['day']) or 1
         for index, day in enumerate(self.stats['day']):
@@ -605,14 +737,13 @@ Only files that have been uploaded more than this will be shown on the statistic
         return returncode['zap']
 
     __publiccommands__ = __privatecommands__ = [
-        ('dupstats', update_and_open),
-        ('dup', update_and_open),
-        ('dup-playlist', partial(update_and_open, create_page=False, open_page=False, open_playlist=True)),
-        ('dup-page', partial(update_and_open, create_playlist=False)),
-        ('dup-update', partial(update_and_open, open_page=False)),
-        ('dup-reset', reset_stats),
-        ('dup-open-page', partial(open_stats, playlist=False)),
-        ('dup-open-playlist', partial(open_stats, page=False)),
-        ('dup-update-page', partial(update_stats, playlist=False)),
-        ('dup-update-playlist', partial(update_stats, page=False)),
+        ('', update_and_open),
+        ('playlist', partial(update_and_open, create_page=False, open_page=False, open_playlist=True)),
+        ('page', partial(update_and_open, create_playlist=False)),
+        ('update', partial(update_and_open, open_page=False)),
+        ('reset', reset_stats),
+        ('open-page', partial(open_stats, playlist=False)),
+        ('open-playlist', partial(open_stats, page=False)),
+        ('update-page', partial(update_stats, playlist=False)),
+        ('update-playlist', partial(update_stats, page=False)),
     ]
