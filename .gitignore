@@ -1,4 +1,5 @@
 build/*
+backup.tar.gz
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,virtualenv,vim,windows,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,virtualenv,vim,windows,linux

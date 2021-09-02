@@ -81,9 +81,12 @@ Only files that have been uploaded more than this will be shown on the statistic
     }
 
     default_stats = {'file': {}, 'user': {}, 'day': [0, 0, 0, 0, 0, 0, 0]}
+    protected_files = ['build/']
 
     def init(self):
+        self.protected_files.extend([self.settings['stats_file']])
         super().init()
+
         self.stats = self.default_stats.copy()
         self.load_stats()
 

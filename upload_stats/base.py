@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import re
 import sys
+import tarfile
+from tempfile import TemporaryDirectory
 from threading import Event, Thread
 from time import sleep, time
 from urllib import request
@@ -140,7 +142,12 @@ Check for updates on start and periodically''',
     def __name__(self):
         return CONFIG.get('Name', self.__class__.__name__)
 
+    @property
+    def plugin_name(self):
+        return BASE_PATH.name
+
     update_version = None
+    protected = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -151,10 +158,13 @@ Check for updates on start and periodically''',
         metasettings.update(self.metasettings)
         self.metasettings = metasettings
 
+        self.protected.extend(['.git/', 'backup.tar.gz', '.vim'])
+
     def init(self):
         default_commands = [
             ('reload', self.reload),
             ('update', self.check_update),
+            ('upgrade', self.update_plugin),
         ]
 
         self.auto_update = PeriodicJob(name='AutoUpdate',
@@ -185,10 +195,6 @@ Check for updates on start and periodically''',
                 self.__privatecommands__.append((name, callback))
 
         self.log(f'Running version {__version__}')
-
-    @property
-    def plugin_name(self):
-        return BASE_PATH.name
 
     @command
     def reload(self):
@@ -231,10 +237,149 @@ Check for updates on start and periodically''',
         return f'https://github.com/{repo}/releases/tag/{self.update_version}'
 
     @command
-    def check_update(self):
+    def update_plugin(self):
+        if not self.update_version:
+            self.check_update(quiet=True, force=True)
+        if not self.update_version:
+            self.log('No updates available')
+            return returncode['zap']
+        url = f'https://github.com/{CONFIG["Repository"]}/archive/refs/tags/{self.update_version}.tar.gz'
+        Thread(target=BasePlugin._update, args=(self.__name__, self.plugin_name,
+                                                self.parent, BASE_PATH, self.protected,
+                                                url)).start()
+        return returncode['zap']
+
+    @staticmethod
+    def _update(name, plugin_name, handler, path, protected, tarball_url):
+        prefix = f'# {name}: '
+        log.add('#' * 80)
+        sleep(1)
+
+        class UpdateError(Exception):
+            pass
+
+        backup_file = BASE_PATH / 'backup.tar.gz'
+        if backup_file.is_file():
+            backup_file.unlink()
+        rollback_needed = False
+
+        protected_files = set(filter(lambda i: not i.endswith('/'), protected))  # type: ignore
+        protected_folders = set(map(lambda i: i[:-1], set(protected) - protected_files))
+
+        def is_protected(file, root):
+            relative = str(file.relative_to(root))
+            return (
+                (file.is_file() and relative in protected_files) or
+                (file.is_dir() and relative.startswith(tuple(protected_folders)))
+            )
+
+        def clean_folder(folder=BASE_PATH):
+            for file in folder.glob('*'):
+                if is_protected(file, BASE_PATH):
+                    continue
+                elif file.is_dir():
+                    clean_folder(file)
+                file.unlink()
+
+        def move_folder(dic):
+            root = next(Path(dic.name).glob('*'))
+            for file in root.glob('**/*'):
+                if is_protected(file, root):
+                    continue
+                file.rename(BASE_PATH / file.relative_to(root))
+
+        try:
+            try:
+                log.add(prefix + 'Disabling plugin...')
+                handler.disable_plugin(plugin_name)
+                sleep(1)
+            except Exception as e:
+                raise UpdateError(f'Could not diable plugin "{e}"')
+            log.add(prefix + '[OK]')
+
+            try:
+                log.add(prefix + 'Creating a backup...')
+                with tarfile.open(backup_file, 'w:gz') as tar_handle:
+                    tar_handle.add(BASE_PATH, '')
+            except Exception as e:
+                raise UpdateError(f'Could not create backup "{e}"')
+            log.add(prefix + '[OK]')
+
+            dic = TemporaryDirectory()
+            try:
+                log.add(prefix + 'Download udpate')
+                with request.urlopen(tarball_url) as response:
+                    with tarfile.open(fileobj=response, mode='r:gz') as tar_handle:
+                        tar_handle.extractall(dic.name)
+            except Exception as e:
+                raise UpdateError(f'Could not download update {e}')
+            log.add(prefix + '[OK]')
+
+            try:
+                rollback_needed = True
+                log.add('Removing old data...')
+                clean_folder()
+            except Exception as e:
+                raise UpdateError(f'Could not remove old data {e}')
+            log.add(prefix + '[OK]')
+
+            try:
+                log.add('Installing new data...')
+                move_folder(dic.name)
+            except Exception as e:
+                raise UpdateError(f'Could not install new data {e}')
+            log.add(prefix + '[OK]')
+
+            try:
+                log.add('Enabling plugin...')
+                handler.enable_plugin(plugin_name)
+            except Exception as e:
+                raise UpdateError(f'Could not enable plugin {e}')
+            log.add(prefix + '[OK]')
+        except Exception as e:
+            rollback = ''
+            rollback_success = False
+            if rollback_needed:
+                try:
+                    clean_folder()
+                    with TemporaryDirectory() as backup_dic:
+                        with tarfile.open(backup_file, mode='r:gz') as tar_handle:
+                            tar_handle.extractall(backup_dic)
+                        move_folder(backup_dic)
+                    rollback = 'Rolled back'
+                    rollback_success = True
+                except Exception as e2:
+                    rollback = f'Rollback failed: {e2}'
+
+            reenabled = ''
+            if rollback_needed and rollback_success or not rollback_needed:
+                try:
+                    handler.enable_plugin(plugin_name)
+                    reenabled = 'Plugin enabled again'
+                except Exception as e2:
+                    reenabled = f'Plugin could not be enable again {e2}'
+
+            if isinstance(e, UpdateError):
+                msg = prefix + str(e)
+            else:
+                msg = prefix + f'An error occured: {e}.'
+
+            msg += f'\n\n{rollback}\n\n{reenabled}'
+            log.add(msg)
+            log.add_important_error(msg.strip())
+        else:
+            log.add_important_info(prefix + 'Update successful!')
+        finally:
+            log.add('#' * 80)
+
+    @command
+    def check_update(self, quiet=True, force=False):
         try:
             repo = CONFIG.get('Repository')
-            if 'dev' in __version__ or not repo or not self.settings['check_update']:
+            if not repo:
+                return
+
+            if not force and ('dev' in __version__ or not self.settings['check_update']):
                 self.update_version = None
                 return
 
@@ -250,17 +395,19 @@ Check for updates on start and periodically''',
                         msg += f'New version of {self.__name__} plugin available (current: {current_version}) at: {release["html_url"]}\n\n'  # noqa
                         self.update_version = release['tag_name']
                     msg += f'{release["name"]}\n{release["body"]}\n\n'
-                if msg:
-                    self.log('\n{border}\n{msg}\n{border}'.format(msg=msg.strip(), border='#' * 80))
-                    log.add_important_info(msg)
-                else:
-                    self.log('No new version available')
+                if not quiet:
+                    if msg:
+                        self.log('\n{border}\n{msg}\n{border}'.format(msg=msg.strip(), border='#' * 80))
+                        log.add_important_info(msg)
+                    else:
+                        self.log('No new version available')
         except Exception as e:
             self.log(f'ERROR: Could not fetch update: {e}')
+        return returncode['zap']
 
     def stop(self):
         if hasattr(self, 'pre_stop'):
-            self.pre_stop()
+            self.pre_stop()  # type: ignore
         self.auto_update.stop(False)
         self.settings_watcher.stop(False)
 
