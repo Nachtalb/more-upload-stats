@@ -152,7 +152,10 @@ Check for updates on start and periodically''',
         self.metasettings = metasettings
 
     def init(self):
-        default_commands = [('reload', self.reload)]
+        default_commands = [
+            ('reload', self.reload),
+            ('update', self.check_update),
+        ]
 
         self.auto_update = PeriodicJob(name='AutoUpdate',
                                        delay=3600,
@@ -227,6 +230,7 @@ Check for updates on start and periodically''',
             return
         return f'https://github.com/{repo}/releases/tag/{self.update_version}'
 
+    @command
     def check_update(self):
         try:
             repo = CONFIG.get('Repository')
@@ -243,11 +247,12 @@ Check for updates on start and periodically''',
                     if release['draft'] or release['prerelease'] or Version.parse(release['tag_name'][1:]) <= current_version:  # noqa
                         continue
                     if not msg:
-                        msg += f'New version available (current: {current_version}) at: {release["html_url"]}\n\n'
+                        msg += f'New version of {self.__name__} plugin available (current: {current_version}) at: {release["html_url"]}\n\n'  # noqa
                         self.update_version = release['tag_name']
                     msg += f'{release["name"]}\n{release["body"]}\n\n'
                 if msg:
                     self.log('\n{border}\n{msg}\n{border}'.format(msg=msg.strip(), border='#' * 80))
+                    log.add_important_info(msg)
                 else:
                     self.log('No new version available')
         except Exception as e:
