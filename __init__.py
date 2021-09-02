@@ -403,8 +403,8 @@ Only files that have been uploaded more than this will be shown on the statistic
     default_stats = {'file': {}, 'user': {}, 'day': [0, 0, 0, 0, 0, 0, 0]}
 
     def init(self):
+        super().init()
         self.stats = self.default_stats.copy()
-        self.ready = False
 
         self.load_stats()
 
@@ -413,7 +413,6 @@ Only files that have been uploaded more than this will be shown on the statistic
                                         update=self.update_index_html,
                                         before_start=lambda: self.auto_update.first_round.wait())
         self.auto_builder.start()
-        self.log(f'Running version {__version__}')
 
     def stop(self):
         super().stop()
