@@ -259,6 +259,8 @@ Check for updates on start and periodically''',
             self.log(f'ERROR: Could not fetch update: {e}')
 
     def stop(self):
+        if hasattr(self, 'pre_stop'):
+            self.pre_stop()
         self.auto_update.stop(False)
         self.settings_watcher.stop(False)
 

@@ -93,8 +93,7 @@ Only files that have been uploaded more than this will be shown on the statistic
                                         before_start=lambda: self.auto_update.first_round.wait())
         self.auto_builder.start()
 
-    def stop(self):
-        super().stop()
+    def pre_stop(self):
         self.auto_builder.stop(False)
 
     def load_stats(self):
