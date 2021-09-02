@@ -1,9 +1,7 @@
 #!/usr/bin/fish
-
 function clean
     echo $argv | cut -d= -f2- | cut -c2- | sed 's/.$//'
 end
-
 
 set -l p_info (cat PLUGININFO)
 echo (clean $p_info[1]) | read -d. -l major minor patch dev
@@ -19,29 +17,29 @@ function gen
     echo 'Version="{v}"
 Authors={a}
 Name="{n}"
-Description="{d}"' | \
+Description="{d}"'| \
     string replace '{v}' $argv[1] | \
     string replace '{a}' $argv[2] | \
     string replace '{n}' $argv[3] | \
     string replace '{d}' $argv[4] > PLUGININFO
+    printf '%s\n' $argv[6..-1] >> PLUGININFO
+
+    if test $argv[5] = 0
+        sed -i -E 's/Prefix="d(\w+)"/Prefix="\1"/' PLUGININFO
+    end
 end
 
 set -l new_description (cat description.txt | string join \\n | sed 's/"/\\\\"/g')
 
-gen $new_version $new_authors $new_name $new_description
+gen $new_version $new_authors $new_name $new_description 0 $p_info[5..-1]
 
-sed -i -e "s/__name__ = '$p_name'/__name__ = '$new_name'/" __init__.py
-sed -i -e "s/'dupstats/'upstats/g" __init__.py
-sed -i -re "s/'dup(['-])/'up\\1/g" __init__.py
-
-git add PLUGININFO __init__.py
+git add PLUGININFO
 git diff --staged
 
 function revert
-    git reset PLUGININFO __init__.py
-    git checkout PLUGININFO __init__.py
+    git reset PLUGININFO
+    git checkout PLUGININFO
 end
-
 
 if test (read -P 'Oki [Y/n]? ' -c Y) != 'Y'
     echo 'Not oki :/'
@@ -57,13 +55,10 @@ echo $new_version | read -d. -l major minor patch
 set -l dev_version $major.$minor.(math $patch + 1).dev0
 set -l dev_name "$new_name DEV"
 
-gen $dev_version $new_authors $dev_name $new_description
-sed -i -e "s/__name__ = '$new_name'/__name__ = '$dev_name'/" __init__.py
-sed -i -e "s/'upstats/'dupstats/g" __init__.py
-sed -i -re "s/'up(['-])/'dup\1/g" __init__.py
+gen $dev_version $new_authors $dev_name $new_description 1 $p_info[5..-1]
 echo "Back to development $dev_version"
 
-git add PLUGININFO __init__.py
+git add PLUGININFO
 git diff --staged
 
 if test (read -P 'Oki [Y/n]? ' -c Y) != 'Y'
