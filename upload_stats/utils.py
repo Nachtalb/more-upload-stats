@@ -4,6 +4,7 @@ import os
 import platform
 import subprocess
 from pathlib import Path
+from mimetypes import guess_type
 
 BASE_PATH = Path(__file__).parent.parent.absolute()
 BUILD_PATH = BASE_PATH / 'build'
@@ -22,6 +23,9 @@ def startfile(file):
 def command(func):
     @wraps(func)
     def wrapper(self, initiator=None, argstring=None, *_args, **_kwargs):
+        if self == initiator:
+            initiator = argstring
+            argstring, _args = _args[0], _args[1:]
         argspec = inspect.signature(func)
         command_args = list(map(str2num, filter(None, map(str.strip, (argstring or '').split()))))
         extra_args = []
@@ -43,3 +47,17 @@ def str2num(string):
     except ValueError:
         pass
     return string
+
+
+def create_m3u(title, files, out_file, max_files=None):
+    m3u = f'#EXTM3U\n#EXTENC: UTF-8\n#PLAYLIST: {title}\n'
+    total = 0
+    for file in files:
+        type = guess_type(file)[0]
+        if type and type.startswith('audio'):
+            m3u += file + '\n'
+            total += 1
+        if total == max_files:
+            break
+
+    Path(out_file).write_text(m3u, encoding='utf-8')

@@ -2,15 +2,14 @@ from base64 import urlsafe_b64encode
 from datetime import datetime
 from functools import partial
 import json
-from mimetypes import guess_type
 from pathlib import Path
 from statistics import mean, median
 from tempfile import NamedTemporaryFile
 import webbrowser
 
-from plugin.base import BasePlugin, PeriodicJob, __version__
-from plugin.tag import a, id_string, li, readable_size_html, small, span, tag
-from plugin.utils import command, startfile, HTML_PATH, BUILD_PATH
+from .base import BasePlugin, PeriodicJob, __version__
+from .tag import a, id_string, li, readable_size_html, small, span, tag
+from .utils import command, startfile, HTML_PATH, BUILD_PATH, create_m3u
 from pynicotine.pluginsystem import returncode
 
 
@@ -90,7 +89,7 @@ Only files that have been uploaded more than this will be shown on the statistic
 
         self.auto_builder = PeriodicJob(name='AutoBuilder',
                                         delay=lambda: self.settings['auto_regenerate'] * 60,
-                                        update=self.update_index_html,
+                                        update=self.update_stats,
                                         before_start=lambda: self.auto_update.first_round.wait())
         self.auto_builder.start()
 
@@ -353,25 +352,9 @@ Only files that have been uploaded more than this will be shown on the statistic
         self.log(f'Statistics generated and saved to "{file}"')
         return file
 
-    def create_m3u(self, songs=[], top_x=25):
-        m3u = '#EXTM3U\n#EXTENC: UTF-8\n'
-        if not songs:
-            all_songs = sorted(self.stats['file'],
-                               key=lambda i: self.stats['file'][i]['total'],
-                               reverse=True)
-            for song in all_songs:
-                type = guess_type(song)[0]
-                if type and type.startswith('audio'):
-                    songs.append(song)
-                    if len(songs) == top_x:
-                        break
-
-            m3u += f'#PLAYLIST:Top {len(songs)}\n'
-        for song in songs:
-            m3u += song + '\n'
-
-        file = Path(self.settings['playlist_file'])
-        file.write_text(m3u, encoding='utf-8')
+    def create_m3u(self):
+        songs = sorted(self.stats['file'], reverse=True, key=lambda i: self.stats['file'][i]['total'])
+        file = create_m3u('TOP #25', songs, self.settings['playlist_file'], max_files=25)
         self.log(f'Playlist generated and saved to "{file}"')
         return file
 
@@ -433,6 +416,7 @@ Only files that have been uploaded more than this will be shown on the statistic
         ('page', partial(update_and_open, create_playlist=False)),
         ('update', partial(update_and_open, open_page=False)),
         ('reset', reset_stats),
+        ('open', open_stats),
         ('open-page', partial(open_stats, playlist=False)),
         ('open-playlist', partial(open_stats, page=False)),
         ('update-page', partial(update_stats, playlist=False)),

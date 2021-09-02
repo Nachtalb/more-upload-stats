@@ -1,5 +1,6 @@
 import ast
 import json
+from pathlib import Path
 import re
 import sys
 from threading import Event, Thread
@@ -7,8 +8,10 @@ from time import sleep, time
 from urllib import request
 
 from pynicotine.logfacility import log
+from pynicotine.pluginsystem import returncode
 from pynicotine.pluginsystem import BasePlugin as NBasePlugin
-from plugin.utils import BASE_PATH
+
+from .utils import BASE_PATH, command
 
 
 config_file = BASE_PATH / 'PLUGININFO'
@@ -149,6 +152,8 @@ Check for updates on start and periodically''',
         self.metasettings = metasettings
 
     def init(self):
+        default_commands = [('reload', self.reload)]
+
         self.auto_update = PeriodicJob(name='AutoUpdate',
                                        delay=3600,
                                        update=self.check_update)
@@ -158,9 +163,9 @@ Check for updates on start and periodically''',
         self.settings_watcher.start()
 
         if prefix := CONFIG.get('Prefix'):
-            public_commands = self.__publiccommands__
+            public_commands = self.__publiccommands__ + default_commands
             self.__publiccommands__ = []
-            private_commands = self.__privatecommands__
+            private_commands = self.__privatecommands__ + default_commands
             self.__privatecommands__ = []
             for name, callback in public_commands:
                 if name:
@@ -170,8 +175,42 @@ Check for updates on start and periodically''',
                 if name:
                     name = '-' + name
                 self.__privatecommands__.append((prefix + name, callback))
+        else:
+            for name, callback in default_commands:
+                name = f'{self.plugin_name}-{name}'
+                self.__publiccommands__.append((name, callback))
+                self.__privatecommands__.append((name, callback))
 
         self.log(f'Running version {__version__}')
+
+    @property
+    def plugin_name(self):
+        return BASE_PATH.name
+
+    @command
+    def reload(self):
+        def _reload(name, plugin_name, handler):
+            log.add('#' * 80)
+            try:
+                log.add(f'# {name}: Disabling plugin...')
+                sleep(1)
+                try:
+                    handler.disable_plugin(plugin_name)
+                except Exception as e:
+                    log.add(f'# {name}: Failed to diable plugin: {e}')
+                    return
+                log.add(f'# {name}: Enabling plugin...')
+                try:
+                    handler.enable_plugin(plugin_name)
+                except Exception as e:
+                    log.add(f'# {name}: Failed to enable the plugin: {e}')
+                    return
+                log.add(f'# {name}: Reload complete')
+            finally:
+                log.add('#' * 80)
+
+        Thread(target=_reload, daemon=True, args=(self.__name__, self.plugin_name, self.parent)).start()
+        return returncode['zap']
 
     def log(self, *msg, msg_args=[], level=None):
         if len(msg) == 1:
@@ -217,7 +256,15 @@ Check for updates on start and periodically''',
     def stop(self):
         self.auto_update.stop(False)
         self.settings_watcher.stop(False)
-        sys.path.remove(str(BASE_PATH.absolute()))
+
+        # Module injection cleanup
+        module_path = str(BASE_PATH.absolute())
+        if module_path in sys.path:
+            sys.path.remove(module_path)
+
+        for name in list(sys.modules.keys())[:]:
+            if name.startswith(Path(__file__).parent.name):
+                sys.modules.pop(name)
 
     def shutdown_notification(self):
         self.stop()
