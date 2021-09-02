@@ -92,6 +92,7 @@ body .wrapper {
   padding: 0;
   background: var(--main-bg);
   color: var(--main-fg);
+  overflow-x: hidden;
   transition: ease-in-out all 0.5s;
 }
 
