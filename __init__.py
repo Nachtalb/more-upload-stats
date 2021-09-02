@@ -1,9 +1,11 @@
 import base64
+from base64 import urlsafe_b64encode
 from datetime import datetime
 from functools import partial, reduce, wraps
 import hashlib
 import inspect
 import json
+from mimetypes import guess_type
 import os
 from pathlib import Path
 import platform
@@ -14,7 +16,6 @@ from threading import Event, Thread
 from time import sleep, time
 from urllib import request
 import webbrowser
-from mimetypes import guess_type
 
 from pynicotine.pluginsystem import BasePlugin, returncode
 
@@ -439,14 +440,18 @@ Only files that have been uploaded more than this will be shown on the statistic
             </tr>'''
         return html
 
-    def stats_link(self):
-        filepath = self.settings['stats_file']
-        name = Path(filepath).name
-        return a(name,
-                 href='file:///' + filepath,
-                 data_tooltip=filepath,
+    def file_link(self, file, base64=False):
+        file = Path(file)
+        href = f'file:///{file}'
+        if base64:
+            b64 = urlsafe_b64encode(file.read_bytes()).decode('utf-8')
+            href = f'data:application/octet-stream;base64,{b64}'
+
+        return a(file.name,
+                 href=href,
+                 data_tooltip=file,
                  target='_blank',
-                 download=name)
+                 download=file.name)
 
     def ranking(self, data, size=5):
         html = ''
@@ -486,7 +491,8 @@ Only files that have been uploaded more than this will be shown on the statistic
             'head': '',
             'update': '',
             'summary': self.summary(),
-            'stats_link': self.stats_link(),
+            'stats_link': self.file_link(self.settings['stats_file']),
+            'playlist_file': self.file_link(self.settings['playlist_file'], base64=True),
             'userranking': self.user_ranking(),
             'fileranking': self.file_ranking(),
             'icons': self.icons()
