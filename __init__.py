@@ -19,6 +19,7 @@ from time import sleep, time
 from urllib import request
 import webbrowser
 
+from pynicotine.logfacility import log
 from pynicotine.pluginsystem import returncode
 from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 
@@ -143,7 +144,10 @@ Check for updates on start and periodically''',
         },
     }
 
-    __name__ = CONFIG.get('Name')
+    @property
+    def __name__(self):
+        return CONFIG.get('Name', self.__class__.__name__)
+
     update_version = None
 
     def __init__(self, *args, **kwargs):
@@ -179,6 +183,14 @@ Check for updates on start and periodically''',
                 self.__privatecommands__.append((prefix + name, callback))
 
         self.log(f'Running version {__version__}')
+
+    def log(self, *msg, msg_args=[], level=None):
+        if len(msg) == 1:
+            msg = msg[0]
+        else:
+            msg = ', '.join(map(str, msg))
+
+        log.add(f'{self.__name__}: {msg}', msg_args, level)
 
     @property
     def update_url(self):
