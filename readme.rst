@@ -10,7 +10,7 @@ statistics.
 huge page. You can disable this by disabling auto thresholding in the
 preferences and setting the manual thresholds to 0.
 
-.. figure:: https://raw.githubusercontent.com/Nachtalb/more-upload-stats/master/images/screenshot.jpg
+.. figure:: https://raw.githubusercontent.com/Nachtalb/more-upload-stats/master/html/images/screenshot.jpg
    :alt: screenshot
 
 Installation
