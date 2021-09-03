@@ -20,6 +20,12 @@ CONFIG = dict([(key, ast.literal_eval(value) if value.startswith('[') else value
 
 __version__ = CONFIG.get('Version', '0.0.1')
 
+if 'dev' in __version__:
+    if 'Prefix' in CONFIG:
+        log.add('%' * 80 + f'\nAttention:\nYou are running this in dev mode. Prefix will be /d{CONFIG["Prefix"]}')
+        CONFIG['Prefix'] = 'd' + CONFIG['Prefix']
+    CONFIG['Name'] += ' DEV'
+
 
 class Version:
     def __init__(self, major, minor, patch, dev=None):
@@ -134,11 +140,11 @@ Check for updates on start and periodically''',
         },
     }
 
-    config = CONFIG
+    plugin_config = dict([(key.lower(), value) for key, value in CONFIG.items()])
 
     @property
     def __name__(self):
-        return CONFIG.get('Name', self.__class__.__name__)
+        return self.plugin_config.get('name', self.__class__.__name__)
 
     update_version = None
 
@@ -158,14 +164,14 @@ Check for updates on start and periodically''',
         ]
 
         self.auto_update = PeriodicJob(name='AutoUpdate',
-                                       delay=3600,
+                                       delay=3600 * 6,  # Every 6h
                                        update=self.check_update)
         self.auto_update.start()
 
         self.settings_watcher = PeriodicJob(name='SettingsWatcher', update=self.detect_settings_change)
         self.settings_watcher.start()
 
-        if prefix := CONFIG.get('Prefix'):
+        if prefix := self.plugin_config.get('prefix'):
             public_commands = self.__publiccommands__ + default_commands
             self.__publiccommands__ = []
             private_commands = self.__privatecommands__ + default_commands
@@ -215,23 +221,24 @@ Check for updates on start and periodically''',
         Thread(target=_reload, daemon=True, args=(self.__name__, self.plugin_name, self.parent)).start()
         return returncode['zap']
 
-    def log(self, *msg, msg_args=[], level=None):
+    def log(self, *msg, msg_args=[], level=None, with_prefix=True):
         if len(msg) == 1:
             msg = msg[0]
         else:
             msg = ', '.join(map(str, msg))
 
-        log.add(f'{self.__name__}: {msg}', msg_args, level)
+        msg = (f'{self.__name__}: ' if with_prefix else '') + f'{msg}'
+        log.add(msg, msg_args, level)
 
-    def error_window(self, *msg, msg_args=[]):
-        self.log(*msg, msg_args=msg_args, level='important_error')
+    def error_window(self, *msg, msg_args=[], with_prefix=True):
+        self.log(*msg, msg_args=msg_args, level='important_error', with_prefix=with_prefix)
 
-    def info_window(self, *msg, msg_args=[]):
-        self.log(*msg, msg_args=msg_args, level='important_info')
+    def info_window(self, *msg, msg_args=[], with_prefix=True):
+        self.log(*msg, msg_args=msg_args, level='important_info', with_prefix=with_prefix)
 
     @property
     def update_url(self):
-        repo = CONFIG.get('Repository')
+        repo = self.plugin_config.get('repository')
         if not self.update_version or not repo:
             return
         return f'https://github.com/{repo}/releases/tag/{self.update_version}'
@@ -239,7 +246,7 @@ Check for updates on start and periodically''',
     @command
     def check_update(self):
         try:
-            repo = CONFIG.get('Repository')
+            repo = self.plugin_config.get('repository')
             if 'dev' in __version__ or not repo or not self.settings['check_update']:
                 self.update_version = None
                 return

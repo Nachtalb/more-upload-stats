@@ -11,7 +11,6 @@ set -l p_name (clean $p_info[3])
 read -P 'New version: ' -c $major.$minor.$patch -l new_version
 read -P 'Auhors: ' -c "$p_authors" -l new_authors
 set -l new_authors "['"(echo $new_authors | string split , | string trim | string join "', '")"']"
-read -P 'Name: ' -c (echo $p_name | sed 's/ DEV//') -l new_name
 
 function gen
     echo 'Version="{v}"
@@ -22,16 +21,12 @@ Description="{d}"'| \
     string replace '{a}' $argv[2] | \
     string replace '{n}' $argv[3] | \
     string replace '{d}' $argv[4] > PLUGININFO
-    printf '%s\n' $argv[6..-1] >> PLUGININFO
-
-    if test $argv[5] = 0
-        sed -i -E 's/Prefix="d(\w+)"/Prefix="\1"/' PLUGININFO
-    end
+    printf '%s\n' $argv[5..-1] >> PLUGININFO
 end
 
-set -l new_description (cat description.txt | string join \\n | sed 's/"/\\\\"/g')
+set -l new_description (cat DESCRIPTION | string join \\n | sed 's/"/\\\\"/g')
 
-gen $new_version $new_authors $new_name $new_description 0 $p_info[5..-1]
+gen $new_version $new_authors $p_name $new_description $p_info[5..-1]
 
 git add PLUGININFO
 git diff --staged
@@ -53,9 +48,8 @@ git tag "v$new_version"
 echo $new_version | read -d. -l major minor patch
 
 set -l dev_version $major.$minor.(math $patch + 1).dev0
-set -l dev_name "$new_name DEV"
 
-gen $dev_version $new_authors $dev_name $new_description 1 $p_info[5..-1]
+gen $dev_version $new_authors $p_name $new_description $p_info[5..-1]
 echo "Back to development $dev_version"
 
 git add PLUGININFO
