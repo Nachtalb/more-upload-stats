@@ -354,9 +354,9 @@ Only files that have been uploaded more than this will be shown on the statistic
 
     def create_m3u(self):
         songs = sorted(self.stats['file'], reverse=True, key=lambda i: self.stats['file'][i]['total'])
-        file = create_m3u('TOP #25', songs, self.settings['playlist_file'], max_files=25)
+        file = self.settings['playlist_file']
+        create_m3u('TOP #25', songs, file, max_files=25)
         self.log(f'Playlist generated and saved to "{file}"')
-        return file
 
     @command
     def update_stats(self, initiator=None, args=None, page=True, playlist=True):
