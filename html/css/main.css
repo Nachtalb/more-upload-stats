@@ -241,6 +241,7 @@ Leaderboard
   backface-visibility: hidden;
   transform: translateZ(0) scale(1, 1);
   margin: 0;
+  max-height: 54px;
 }
 
 .leaderboard ol li::before {

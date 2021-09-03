@@ -144,21 +144,21 @@ Only files that have been uploaded more than this will be shown on the statistic
         total_users = len(users)
         total_files = len(files)
 
-        user_bytes = tuple(filter(None, map(lambda i: i.get('total_bytes'), users)))
-        user_files = tuple(map(lambda i: i['total'], users))
+        user_bytes = tuple(filter(None, map(lambda i: i.get('total_bytes'), users))) or [0]
+        user_files = tuple(map(lambda i: i['total'], users)) or [0]
 
         average_bytes_user = readable_size_html(mean(user_bytes))
         median_bytes_user = readable_size_html(median(user_bytes))
         average_files_user = format(mean(user_files), '.2f')
         median_files_user = median(user_files)
 
-        total_uploads_per_file = tuple(map(lambda i: i['total'], files))
-        total_bytes_per_file = tuple(filter(None, map(lambda i: i.get('total_bytes'), files)))
+        total_uploads_per_file = tuple(map(lambda i: i['total'], files)) or [0]
+        total_bytes_per_file = tuple(filter(None, map(lambda i: i.get('total_bytes'), files))) or [0]
 
         total_uploads = sum(total_uploads_per_file)
         total_bytes = readable_size_html(sum(total_bytes_per_file))
 
-        file_size = tuple(filter(None, map(lambda i: i.get('file_size'), files)))
+        file_size = tuple(filter(None, map(lambda i: i.get('file_size'), files))) or [0]
 
         average_filesize = readable_size_html(mean(file_size))
         median_filesize = readable_size_html(median(file_size))
@@ -194,6 +194,8 @@ Only files that have been uploaded more than this will be shown on the statistic
 
     def user_threshold(self):
         if self.settings['threshold_auto']:
+            if not self.stats['user']:
+                return 0
             uniq_totals = set(map(lambda i: i['total'], self.stats['user'].values()))
             return sorted(uniq_totals)[int(len(uniq_totals) * .25)]
         else:
@@ -224,6 +226,8 @@ Only files that have been uploaded more than this will be shown on the statistic
 
     def file_threshold(self):
         if self.settings['threshold_auto']:
+            if not self.stats['file']:
+                return 0
             uniq_totals = set(map(lambda i: i['total'], self.stats['file'].values()))
             return sorted(uniq_totals)[int(len(uniq_totals) * .25)]
         else:
@@ -282,10 +286,7 @@ Only files that have been uploaded more than this will be shown on the statistic
             link_id = None
             if len(data) >= index + 1:
                 title, score, link_id = data[index]
-            if link_id:
-                html += li(a(small(f'{score} ') + span(span(title)), href=link_id))
-            else:
-                html += li(small(f'{score} ') + span(span(title)))
+            html += li(a(small(f'{score} ') + span(span(title)), href=link_id or '#'))
         return html
 
     def user_ranking(self):
