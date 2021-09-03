@@ -223,6 +223,12 @@ Check for updates on start and periodically''',
 
         log.add(f'{self.__name__}: {msg}', msg_args, level)
 
+    def error_window(self, *msg, msg_args=[]):
+        self.log(*msg, msg_args=msg_args, level='important_error')
+
+    def info_window(self, *msg, msg_args=[]):
+        self.log(*msg, msg_args=msg_args, level='important_info')
+
     @property
     def update_url(self):
         repo = CONFIG.get('Repository')
@@ -281,10 +287,12 @@ Check for updates on start and periodically''',
 
     def detect_settings_change(self):
         if not hasattr(self, '_settings_before'):
-            self._settings_before = set(self.settings.items())
+            self._settings_before = set([(k, tuple(v) if isinstance(v, list) else v)
+                                         for k, v in self.settings.items()])
             return
 
-        after = set(self.settings.items())
+        after = set([(k, tuple(v) if isinstance(v, list) else v)
+                     for k, v in self.settings.items()])
         if changes := self._settings_before ^ after:
             change_dict = {
                 'before': dict(filter(lambda i: i in self._settings_before, changes)),
@@ -293,7 +301,7 @@ Check for updates on start and periodically''',
             self.settings_changed(before=self._settings_before,
                                   after=self.settings,
                                   change=change_dict)
-            self._settings_before = set(self.settings.items())
+            self._settings_before = after
 
     def settings_changed(self, before, after, change):
         self.log(f'Settings change: {json.dumps(change)}')
