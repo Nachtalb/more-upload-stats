@@ -1,3 +1,4 @@
+!build/.gitkeep
 build/*
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,virtualenv,vim,windows,linux
@@ -29,7 +30,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
