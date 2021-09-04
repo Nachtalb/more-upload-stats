@@ -48,6 +48,8 @@ Settings
 +=====================+=========================================================================================+===============================+
 | Check for Updates   | Check for updates on start and periodically                                             | Enabled                       |
 +---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+| Quieter             | Quiet down a bit and stop filling the console with messages.                            | Disabled                      |
++---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
 | Raw statistics file | JSON file where containing the raw data                                                 | ``build/stats.json``          |
 +---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
 | Statistic page file | HTML file presenting the data in a human readable way                                   | ``build/index.html``          |
