@@ -19,6 +19,7 @@ class Plugin(BasePlugin):
         'stats_html_file': str(BUILD_PATH / 'index.html'),
         'playlist_file': str(BUILD_PATH / 'playlist.m3u'),
         'dark_theme': True,
+        'quiet': False,
         'auto_regenerate': 30,
         'auto_refresh': False,
         'threshold_auto': True,
@@ -47,6 +48,11 @@ HTML file presenting the data in a human readable way''',
         'dark_theme': {
             'description': '''Dark Theme
 Enable / Disable dark theme''',
+            'type': 'bool',
+        },
+        'quiet': {
+            'description': '''Quieter
+Don\'t print as much to the console''',
             'type': 'bool',
         },
         'auto_refresh': {
@@ -104,6 +110,15 @@ Only files that have been uploaded more than this will be shown on the statistic
         except FileNotFoundError:
             self.log(f'Statistics file does not exist yet. Creating "{path}"')
             self.save_stats()
+
+    def log(self, *msg, msg_args=[], level=None, with_prefix=True, force=False):
+        if self.settings['quiet'] and not force and not level:
+            return
+        super().log(*msg, msg_args=msg_args, level=level, with_prefix=with_prefix)
+
+    def settings_changed(self, before, after, change):
+        if not self.settings['quiet']:
+            super().settings_changed(before, after, change)
 
     def save_stats(self, file=None):
         if not file:
@@ -405,10 +420,10 @@ Only files that have been uploaded more than this will be shown on the statistic
     def reset_stats(self):
         backup = Path(self.settings['stats_file']).with_suffix('.bak.json')
         self.save_stats(backup)
-        self.log(f'Created a backup at "{backup}"')
+        self.log(f'Created a backup at "{backup}"', force=True)
         self.stats = self.default_stats.copy()
         self.save_stats()
-        self.log('Statistics have been reset')
+        self.log('Statistics have been reset', force=True)
         return returncode['zap']
 
     __publiccommands__ = __privatecommands__ = [
