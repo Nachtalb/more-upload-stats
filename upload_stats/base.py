@@ -220,7 +220,7 @@ Check for updates on start and periodically''',
         return returncode['zap']
 
     def log(self, *msg, msg_args=[], level=None, with_prefix=True):
-        log(*msg, msg_args=msg_args, level=level, prefix=self.__name__ if with_prefix else None)
+        log(*msg, msg_args=msg_args, level=level, prefix=f'{self.__name__}: ' if with_prefix else None)
 
     def error_window(self, *msg, msg_args=[], with_prefix=True):
         self.log(*msg, msg_args=msg_args, level='important_error', with_prefix=with_prefix)
