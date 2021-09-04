@@ -8,6 +8,7 @@ from pathlib import Path
 import platform
 from random import choice
 import subprocess
+from threading import Thread
 from typing import Union
 from urllib.request import Request, urlopen
 
@@ -92,7 +93,13 @@ def command(func):
                         _kwargs[key] = value
                 elif arg in parameters and (value := _parse_according_to_spec(parameters[arg], orig_arg)) is not None:
                     _kwargs[arg] = value
-        return func(self, *extra_args, *_args, **_kwargs)
+
+        curframe = inspect.currentframe()
+        callframe = inspect.getouterframes(curframe, 2)
+        if callframe[1][3] == '_trigger_command':
+            Thread(target=func, args=(self, *extra_args, *_args), kwargs=_kwargs, daemon=True).start()
+        else:
+            return func(self, *extra_args, *_args, **_kwargs)
     return wrapper
 
 
