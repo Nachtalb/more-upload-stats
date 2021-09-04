@@ -48,11 +48,11 @@ Settings
 +=====================+=========================================================================================+===============================+
 | Check for Updates   | Check for updates on start and periodically                                             | Enabled                       |
 +---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Raw statistics file | JSON file where containing the raw data                                                 | `build/stats.json`            |
+| Raw statistics file | JSON file where containing the raw data                                                 | ``build/stats.json``          |
 +---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Statistic page file | HTML file presenting the data in a human readable way                                   | `build/index.html`            |
+| Statistic page file | HTML file presenting the data in a human readable way                                   | ``build/index.html``          |
 +---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| M3U Playlist file   | M3U playlist file of the top 25# uploaded files                                         | `build/playlist.m3u`          |
+| M3U Playlist file   | M3U playlist file of the top 25# uploaded files                                         | ``build/playlist.m3u``        |
 +---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
 | Dark Theme          | Enable / Disable dark theme                                                             | Enabled                       |
 +---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
