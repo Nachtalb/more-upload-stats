@@ -7,9 +7,10 @@ from statistics import mean, median
 from tempfile import NamedTemporaryFile
 import webbrowser
 
-from .base import BasePlugin, PeriodicJob, __version__
+from .core.base import BasePlugin, PeriodicJob, __version__
 from .tag import a, id_string, li, readable_size_html, small, span, tag
-from .utils import command, startfile, HTML_PATH, BUILD_PATH, create_m3u
+from .core.utils import command, startfile
+from .utils import create_m3u, BUILD_PATH, HTML_PATH
 from pynicotine.pluginsystem import returncode
 
 
