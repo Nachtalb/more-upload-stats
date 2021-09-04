@@ -108,6 +108,7 @@ Only files that have been uploaded more than this will be shown on the statistic
     def save_stats(self, file=None):
         if not file:
             file = Path(self.settings['stats_file'])
+        file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(json.dumps(self.stats))
 
     def upload_finished_notification(self, user, virtual_path, real_path):
