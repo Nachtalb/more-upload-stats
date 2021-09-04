@@ -1,5 +1,6 @@
 from mimetypes import guess_type
 from pathlib import Path
+
 from .core.utils import BASE_PATH
 
 BUILD_PATH = BASE_PATH / 'build'

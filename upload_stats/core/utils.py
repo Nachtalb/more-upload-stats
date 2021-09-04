@@ -13,6 +13,9 @@ from urllib.request import Request, urlopen
 
 from pynicotine.logfacility import log as nlog
 
+__all__ = ['BASE_PATH', 'USER_AGENTS', 'startfile', 'command', 'Response', 'get', 'log',
+           'str2num']
+
 BASE_PATH = Path(__file__).parent.parent.parent.absolute()
 
 USER_AGENTS = [
