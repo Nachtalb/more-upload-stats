@@ -17,7 +17,7 @@ jobs:
         with:
           filename: 'upload_stats.zip'
           path: 'upload_stats'
-          exclusions: 'upload_stats/*.git* upload_stats/.gitgub upload_stats/.gitignore upload_stats/.flake8 upload_stats/DESCRIPTION upload_stats/releaser'
+          exclusions: 'upload_stats/*.git* upload_stats/.gitgub upload_stats/.gitignore upload_stats/.flake8 upload_stats/DESCRIPTION upload_stats/releaser upload_stats/_config.yml'
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
