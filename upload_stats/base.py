@@ -5,13 +5,11 @@ import re
 import sys
 from threading import Event, Thread
 from time import sleep, time
-from urllib import request
 
-from pynicotine.logfacility import log
 from pynicotine.pluginsystem import returncode
 from pynicotine.pluginsystem import BasePlugin as NBasePlugin
 
-from .utils import BASE_PATH, command
+from .utils import BASE_PATH, command, log, get
 
 
 config_file = BASE_PATH / 'PLUGININFO'
@@ -22,7 +20,7 @@ __version__ = CONFIG.get('Version', '0.0.1')
 
 if 'dev' in __version__:
     if 'Prefix' in CONFIG:
-        log.add('%' * 80 + f'\nAttention:\nYou are running this in dev mode. Prefix will be /d{CONFIG["Prefix"]}')
+        log('%' * 80 + f'\nAttention:\nYou are running this in dev mode. Prefix will be /d{CONFIG["Prefix"]}')
         CONFIG['Prefix'] = 'd' + CONFIG['Prefix']
     CONFIG['Name'] += ' DEV'
 
@@ -199,36 +197,30 @@ Check for updates on start and periodically''',
     @command
     def reload(self):
         def _reload(name, plugin_name, handler):
-            log.add('#' * 80)
+            log('#' * 80)
             try:
-                log.add(f'# {name}: Disabling plugin...')
+                log(f'# {name}: Disabling plugin...')
                 sleep(1)
                 try:
                     handler.disable_plugin(plugin_name)
                 except Exception as e:
-                    log.add(f'# {name}: Failed to diable plugin: {e}')
+                    log(f'# {name}: Failed to diable plugin: {e}')
                     return
-                log.add(f'# {name}: Enabling plugin...')
+                log(f'# {name}: Enabling plugin...')
                 try:
                     handler.enable_plugin(plugin_name)
                 except Exception as e:
-                    log.add(f'# {name}: Failed to enable the plugin: {e}')
+                    log(f'# {name}: Failed to enable the plugin: {e}')
                     return
-                log.add(f'# {name}: Reload complete')
+                log(f'# {name}: Reload complete')
             finally:
-                log.add('#' * 80)
+                log('#' * 80)
 
         Thread(target=_reload, daemon=True, args=(self.__name__, self.plugin_name, self.parent)).start()
         return returncode['zap']
 
     def log(self, *msg, msg_args=[], level=None, with_prefix=True):
-        if len(msg) == 1:
-            msg = msg[0]
-        else:
-            msg = ', '.join(map(str, msg))
-
-        msg = (f'{self.__name__}: ' if with_prefix else '') + f'{msg}'
-        log.add(msg, msg_args, level)
+        log(*msg, msg_args=msg_args, level=level, prefix=self.__name__ if with_prefix else None)
 
     def error_window(self, *msg, msg_args=[], with_prefix=True):
         self.log(*msg, msg_args=msg_args, level='important_error', with_prefix=with_prefix)
@@ -244,19 +236,21 @@ Check for updates on start and periodically''',
         return f'https://github.com/{repo}/releases/tag/{self.update_version}'
 
     @command
-    def check_update(self):
+    def check_update(self, force=False):
         try:
             repo = self.plugin_config.get('repository')
-            if 'dev' in __version__ or not repo or not self.settings['check_update']:
+            if not repo and force:
+                self.log('This update endpoint defined for this plugin')
+                return
+            if not force and repo and 'dev' in __version__ or not self.settings['check_update']:
                 self.update_version = None
                 return
 
             current_version = Version.parse(__version__)
 
-            with request.urlopen(f'https://api.github.com/repos/{repo}/releases') as response:
-                releases = json.load(response)
+            with get(f'https://api.github.com/repos/{repo}/releases') as response:
                 msg = ''
-                for release in releases:
+                for release in response.json:
                     if release['draft'] or release['prerelease'] or Version.parse(release['tag_name'][1:]) <= current_version:  # noqa
                         continue
                     if not msg:
@@ -265,7 +259,7 @@ Check for updates on start and periodically''',
                     msg += f'{release["name"]}\n{release["body"]}\n\n'
                 if msg:
                     self.log('\n{border}\n{msg}\n{border}'.format(msg=msg.strip(), border='#' * 80))
-                    log.add_important_info(msg)
+                    self.info_window(msg)
                 else:
                     self.log('No new version available')
         except Exception as e:
