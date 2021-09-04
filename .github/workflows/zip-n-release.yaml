@@ -1,0 +1,25 @@
+name: zip-n-release
+on:
+  push:
+    tags:
+      - "v*.*.*"
+jobs:
+  zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.GITHUB_REF }}
+          path: upload_stats
+      - name: zip
+        uses: thedoctor0/zip-release@master
+        with:
+          filename: 'upload_stats.zip'
+          path: 'upload_stats'
+          exclusions: 'upload_stats/*.git* upload_stats/.gitgub upload_stats/.gitignore upload_stats/.flake8 upload_stats/DESCRIPTION upload_stats/releaser'
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: 'upload_stats.zip'
+          draft: true
