@@ -1,0 +1,3 @@
+[submodule "upload_stats/core"]
+	path = upload_stats/core
+	url = git@github.com:Nachtalb/np_plugin.core.git
