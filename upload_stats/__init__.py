@@ -346,7 +346,7 @@ Only files that have been uploaded more than this will be shown on the statistic
                                  'A new update is available. Current: {current} New: {new}'.format(
                                      current=tag('kbd', __version__),
                                      new=tag('kbd', self.update_version[1:])
-                                 ), href=self.update_url + self.update_version, target='_blank')
+                                 ), href=self.update_url, target='_blank')
 
         max_day = max(self.stats['day']) or 1
         for index, day in enumerate(self.stats['day']):
