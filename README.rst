@@ -1,7 +1,7 @@
 More Upload Statistics
 ======================
 
-A small plugin for `Nicotine+`_ to create more detailed upload
+A small plugin for `Nicotine+`_ 3.1+ to create more detailed upload
 statistics.
 
 ⚠ No data previous to enabling this plugin will be available.
@@ -15,6 +15,16 @@ preferences and setting the manual thresholds to 0.
 
 Installation
 ------------
+
+Click the burger menu next to the gear icon at the top right of your
+window.
+
+Click "About Nicotine+"
+
+If the version number is above 3.1.0, continue to the next step. 
+If not, update here: https://github.com/nicotine-plus/nicotine-plus/releases/latest/
+
+If you are on Linux you need Python 3.8+.
 
 Open Nicotine+ settings, go to *General > Plugins* and click *+ Add
 Plugins*. After that download the latest `release`_ and extract it into
