@@ -16,12 +16,16 @@ from .utils import BUILD_PATH, HTML_PATH, create_m3u
 
 
 class Plugin(BasePlugin):
+    backup_folder = BUILD_PATH / 'backups'
+    backup_folder.mkdir(exist_ok=True, parents=True)
+
     settings = {
         'stats_file': str(BUILD_PATH / 'stats.json'),
         'stats_html_file': str(BUILD_PATH / 'index.html'),
         'playlist_file': str(BUILD_PATH / 'playlist.m3u'),
         'dark_theme': True,
         'quiet': False,
+        'auto_backup': 24,
         'auto_regenerate': 30,
         'auto_refresh': False,
         'threshold_auto': True,
@@ -55,6 +59,11 @@ Enable / Disable dark theme''',
         'quiet': {
             'description': '''Quieter
 Don\'t print as much to the console''',
+            'type': 'bool',
+        },
+        'auto_backup': {
+            'description': f'''Auto Backup every x hours
+Backup folder: {backup_folder}''',
             'type': 'bool',
         },
         'auto_refresh': {
@@ -100,8 +109,14 @@ Only files that have been uploaded more than this will be shown on the statistic
                                         update=self.update_stats,
                                         before_start=lambda: self.auto_update.first_round.wait())
         self.auto_builder.start()
+        self.auto_backup = PeriodicJob(name='AutoBuilder',
+                                       delay=lambda: self.settings['auto_backup'] * 3600,
+                                       update=partial(self.backup, 'auto'),
+                                       before_start=lambda: self.auto_update.first_round.wait())
+        self.auto_backup.start()
 
     def pre_stop(self):
+        self.auto_update.stop()
         self.auto_builder.stop(False)
 
     def load_stats(self):
@@ -376,7 +391,7 @@ Only files that have been uploaded more than this will be shown on the statistic
         create_m3u('TOP #25', songs, file, max_files=25)
         self.log(f'Playlist generated and saved to "{file}"')
 
-    @command
+    @command('build')
     def update_stats(self, initiator=None, args=None, page=True, playlist=True):
         if playlist:
             self.create_m3u()
@@ -399,7 +414,7 @@ Only files that have been uploaded more than this will be shown on the statistic
                 return filename
         return returncode['zap']
 
-    @command
+    @command('open')
     def open_stats(self, page=True, playlist=True):
         if page:
             filename = page if isinstance(page, str) else self.settings['stats_html_file']
@@ -407,7 +422,7 @@ Only files that have been uploaded more than this will be shown on the statistic
         if playlist:
             startfile(self.settings['playlist_file'])
 
-    @command
+    @command('')
     def update_and_open(self,
                         args=None,
                         create_page=True,
@@ -419,22 +434,28 @@ Only files that have been uploaded more than this will be shown on the statistic
         return returncode['zap']
 
     @command
+    def backup(self, name=''):
+        try:
+            name = (name + '-') if name else ''
+            backup = self.backup_folder / ('stats-' + name + datetime.now().strftime("%Y_%M_%d-%H_%M_%S") + '.json')
+            self.save_stats(backup)
+            self.log(f'Created a backup at "{backup}"', force=True)
+        except Exception as e:
+            self.log(e, force=True)
+
+    @command('reset')
     def reset_stats(self):
-        backup = Path(self.settings['stats_file']).with_suffix('.bak.json')
-        self.save_stats(backup)
-        self.log(f'Created a backup at "{backup}"', force=True)
+        self.backup('reset')
+
         self.stats = self.default_stats.copy()
         self.save_stats()
+
         self.log('Statistics have been reset', force=True)
         return returncode['zap']
 
     __publiccommands__ = __privatecommands__ = [
-        ('', update_and_open),
         ('playlist', partial(update_and_open, create_page=False, open_page=False, open_playlist=True)),
         ('page', partial(update_and_open, create_playlist=False)),
-        ('build', update_stats),
-        ('reset', reset_stats),
-        ('open', open_stats),
         ('open-page', partial(open_stats, playlist=False)),
         ('open-playlist', partial(open_stats, page=False)),
         ('build-page', partial(update_stats, playlist=False)),
