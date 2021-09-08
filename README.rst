@@ -21,7 +21,7 @@ window.
 
 Click "About Nicotine+"
 
-If the version number is above 3.1.0, continue to the next step. 
+If the version number is above 3.1.0, continue to the next step.
 If not, update here: https://github.com/nicotine-plus/nicotine-plus/releases/latest/
 
 If you are on Linux you need Python 3.8+.
@@ -89,6 +89,13 @@ Contributing
 
 Pull requests are welcome.
 
+
+Contributors
+^^^^^^^^^^^^
+
+`juup1ter`_
+
+
 Credits
 -------
 
@@ -102,6 +109,7 @@ License
 
 .. _Nicotine+: https://nicotine-plus.github.io/nicotine-plus/
 .. _release: https://github.com/Nachtalb/more-upload-stats/releases/latest
+.. _juup1ter: https://github.com/juup1ter
 .. _Skeleton: http://getskeleton.com/
 .. _sorttable: https://www.kryogenix.org/code/browser/sorttable/
 .. _smartline: https://www.flaticon.com/authors/smartline
