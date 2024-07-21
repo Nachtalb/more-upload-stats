@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "upload_stats"
+version = "2.2.1.dev0"
+description = "More detailed upload statistics for Nicotine+"
+authors = ["Nachtalb <na@nachtalb.io>"]
+license = "MIT"
+readme = "README.rst"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+ruff-lsp = "^0.0.54"
+isort = "^5.13.2"
+mypy = "^1.11.0"
+ipdb = "^0.13.13"
+pre-commit = "^3.7.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.black]
+line-length = 120
+preview = true
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.mypy]
+python_version = "3.12"
+show_error_codes = true
+pretty = true
+strict = true
