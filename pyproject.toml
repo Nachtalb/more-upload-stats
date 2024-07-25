@@ -29,13 +29,19 @@ line_length = 120
 [tool.black]
 line-length = 120
 preview = true
-target-version = ["py312"]
+target-version = ["py39"]
 
 [tool.ruff]
 line-length = 120
+target-version = "py39"
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.9"
 show_error_codes = true
 pretty = true
 strict = true
+exclude = [".*/core/.*"]
+
+[[tool.mypy.overrides]]
+module = "pynicotine.*"
+ignore_missing_imports = true
