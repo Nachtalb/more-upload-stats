@@ -1,3 +1,4 @@
+import os
 from mimetypes import guess_type
 from pathlib import Path
 from typing import List, Union
@@ -6,6 +7,7 @@ from .core.utils import BASE_PATH
 
 BUILD_PATH = BASE_PATH / "build"
 HTML_PATH = BASE_PATH / "html"
+REL_HTML_PATH = os.path.relpath(HTML_PATH, BUILD_PATH)
 
 
 def create_m3u(title: str, files: List[str], out_file: Union[str, Path], max_files: int = -1) -> None:

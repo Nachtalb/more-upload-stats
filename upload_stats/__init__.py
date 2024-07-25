@@ -13,7 +13,7 @@ from pynicotine.pluginsystem import returncode
 from .core.base import BasePlugin, PeriodicJob, __version__  # type: ignore[attr-defined]
 from .core.utils import command, startfile
 from .tag import a, id_string, li, readable_size_html, small, span, tag
-from .utils import BUILD_PATH, HTML_PATH, create_m3u
+from .utils import BUILD_PATH, HTML_PATH, REL_HTML_PATH, create_m3u
 
 
 class Stats(TypedDict):
@@ -370,7 +370,7 @@ Only files that have been uploaded more than this will be shown on the statistic
     def icons(self) -> str:
         icons = ""
         for icon in (HTML_PATH / "images").glob("*.svg"):
-            icons += f'.icon-{icon.stem} {{ background-image: url("file:///{HTML_PATH}/images/{icon.name}"); }}'
+            icons += f'.icon-{icon.stem} {{ background-image: url("file:///{REL_HTML_PATH}/images/{icon.name}"); }}'
         return tag("style", icons.replace("\\", "/"))
 
     def build_html(self, user_threshold: Optional[int] = None, file_threshold: Optional[int] = None) -> str:
@@ -378,7 +378,7 @@ Only files that have been uploaded more than this will be shown on the statistic
 
         info: dict[str, Any] = {
             "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "BASE": str(HTML_PATH).replace("\\", "/") + "/",
+            "BASE": str(REL_HTML_PATH).replace("\\", "/") + "/",
             "DARK_THEME": "checked" if self.settings["dark_theme"] else "",
             "head": "",
             "update": "",
