@@ -1,4 +1,4 @@
-Version="2.2.1.dev0"
+Version="2.2.1"
 Authors=['Nachtalb']
 Name="Upload Statistics"
 Description="Collect more detailed upload statistics.\n\n## Info ##\n\n⚠ No data previous to enabling this plugin will be available.\n⚠ Some data in the statistics may be hidden to not create an unnecessarily huge page. You can disable this by disabling auto thresholding in the preferences and setting the manual thresholds to 0.\n\n\n## Usage ##\n\n- Type ``/up`` into a chat message and hit enter.\n\n- If you want to temporarely disable or change the thresholds you can do so like this: ``/up 0 2``. The values are user and file threshold respectively.\n\n- Use ``/up-reset`` to reset the statistics (a backup will be created beforhand).\n\n\n## Credit ##\n\nAuthor: https://github.com/Nachtalb\nSource: https://github.com/Nachtalb/more-upload-stats"
