@@ -32,12 +32,16 @@ get_confirmation() {
 
 # Function to generate changelog
 generate_changelog() {
-    print_color "$BLUE_BG" "INFO:" "Generating changelog..."
-    if ./generate_changelog.py; then
-        print_color "$GREEN_BG" "SUCCESS:" "Changelog generated successfully."
+    if [ -f "./generate_changelog.py" ]; then
+        print_color "$BLUE_BG" "INFO:" "Generating changelog..."
+        if ./generate_changelog.py; then
+            print_color "$GREEN_BG" "SUCCESS:" "Changelog generated successfully."
+        else
+            print_color "$RED_BG" "ERROR:" "Failed to generate changelog. Exiting."
+            exit 1
+        fi
     else
-        print_color "$RED_BG" "ERROR:" "Failed to generate changelog. Exiting."
-        exit 1
+        print_color "$MAGENTA_BG" "SKIP:" "generate_changelog.py not found. Skipping changelog generation."
     fi
 }
 
@@ -55,14 +59,40 @@ preview_and_confirm_bump() {
     fi
 }
 
+# Function to update PLUGINFILE
+update_pluginfile() {
+    local new_version="$1"
+    if [ -f "PLUGINFILE" ]; then
+        print_color "$BLUE_BG" "INFO:" "Updating PLUGINFILE..."
+        sed -i "s/Version=\".*\"/Version=\"$new_version\"/" PLUGINFILE
+        print_color "$GREEN_BG" "SUCCESS:" "PLUGINFILE updated."
+    else
+        print_color "$MAGENTA_BG" "SKIP:" "PLUGINFILE not found. Skipping PLUGINFILE update."
+    fi
+}
+
 # Function to show changes and commit
 show_and_commit_changes() {
     local flag="$1"
     print_color "$CYAN_BG" "DIFF:" "Showing changes:"
-    git --no-pager diff pyproject.toml CHANGELOG.rst
+    git_diff_command="git --no-pager diff pyproject.toml"
+    git_add_command="git add pyproject.toml"
+
+    if [ -f "CHANGELOG.rst" ]; then
+        git_diff_command="$git_diff_command CHANGELOG.rst"
+        git_add_command="$git_add_command CHANGELOG.rst"
+    fi
+
+    if [ -f "PLUGINFILE" ]; then
+        git_diff_command="$git_diff_command PLUGINFILE"
+        git_add_command="$git_add_command PLUGINFILE"
+    fi
+
+    $git_diff_command
+
     if get_confirmation "Do you want to commit these changes?"; then
         current_version=$(poetry version -s)
-        git add pyproject.toml CHANGELOG.rst
+        $git_add_command
         git commit -m "Bump version to $current_version and update changelog"
         case "$flag" in
             prepatch|preminor|premajor|prerelease)
@@ -106,6 +136,7 @@ main() {
     case "$flag" in
         patch|minor|major|prepatch|preminor|premajor|prerelease)
             if preview_and_confirm_bump "$flag"; then
+                update_pluginfile "$(poetry version -s)"
                 show_and_commit_changes "$flag"
                 push_changes_and_tags
             else
@@ -120,6 +151,7 @@ main() {
 
     print_color "$BLUE_BG" "INFO:" "Performing additional prepatch bump"
     if preview_and_confirm_bump prepatch; then
+        update_pluginfile "$(poetry version -s)"
         show_and_commit_changes "prepatch"
         push_changes_and_tags
     else
