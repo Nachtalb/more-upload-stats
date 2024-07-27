@@ -24,7 +24,7 @@ Click "About Nicotine+"
 If the version number is above 3.1.0, continue to the next step.
 If not, update here: https://github.com/nicotine-plus/nicotine-plus/releases/latest/
 
-If you are on Linux you need Python 3.8+.
+If you are on Linux you need Python 3.9+ installed.
 
 Open Nicotine+ settings, go to *General > Plugins* and click *+ Add
 Plugins*. After that download the latest `release`_ and extract it into
@@ -37,53 +37,16 @@ settings.
 Now you can enable the *Upload Statistics* plugin in the previously
 opened plugin settings.
 
-
 Usage
 -----
 
-- Type ``/up`` into a chat message and hit enter.
+After enabling the plugin, you can access the statistics by using these commands
+in any chat window.
 
-- If you want to temporarely disable or change the thresholds you can
-  do so like this: ``/up 0 2``. The values are user and file
-  threshold respectively.
+- ``/up-open``: Open the statistics webpage
+- ``/up-open-playlist`` Open a playlist of the top 25 uploaded music pieces.
 
-- Use ``/up-reset`` to reset the statistics (a backup will be created beforhand).
-
-
-Settings
---------
-
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Name                | Function                                                                                | Default                       |
-+=====================+=========================================================================================+===============================+
-| Check for Updates   | Check for updates on start and periodically                                             | Enabled                       |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Raw statistics file | JSON file where containing the raw data                                                 | ``build/stats.json``          |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Statistic page file | HTML file presenting the data in a human readable way                                   | ``build/index.html``          |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| M3U Playlist file   | M3U playlist file of the top 25# uploaded files                                         | ``build/playlist.m3u``        |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Dark Theme          | Enable / Disable dark theme                                                             | Enabled                       |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Quieter             | Don't print as much to the console                                                      | Disabled                      |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Auto Backup         | Auto backup every x hours. And at the start of Nicotine+                                | Enabled                       |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Auto refresh        | Automatically refresh the statistics page every minute                                  | Disabled                      |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Auto regenerate     | Automatically regenerate statistics page every X minutes                                | 30min                         |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| Auto threshold      | Automatically set a threshold respective to the gathered data.                          | Enabled                       |
-|                     | Data under the threshold will be hidden from the statistics page.                       |                               |
-|                     | Overrides both user and file threshold when enabled.                                    |                               |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| User threshold      | Fix threshold for users.                                                                | 2                             |
-|                     | Only users who downloaded more files than this will be shown on the statistics page.    |                               |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
-| File threshold      | Fix threshold for files.                                                                | 5                             |
-|                     | Only files that have been uploaded more than this will be shown on the statistics page. |                               |
-+---------------------+-----------------------------------------------------------------------------------------+-------------------------------+
+There are many more commands available, you can find them by typing ``/help``.
 
 
 Contributing
@@ -107,8 +70,9 @@ Icons made by `Smartline`_ from `www.flaticon.com`_
 License
 -------
 
-`MIT`_
+`LGPL-3.0`_
 
+.. _npc: https://naa.gg/npc
 .. _Nicotine+: https://nicotine-plus.github.io/nicotine-plus/
 .. _release: https://github.com/Nachtalb/more-upload-stats/releases/latest
 .. _juup1ter: https://github.com/juup1ter
@@ -116,4 +80,4 @@ License
 .. _sorttable: https://www.kryogenix.org/code/browser/sorttable/
 .. _smartline: https://www.flaticon.com/authors/smartline
 .. _www.flaticon.com: https://www.flaticon.com/
-.. _MIT: https://github.com/Nachtalb/more-upload-stats/blob/master/LICENSE
+.. _LGPL-3.0: https://github.com/Nachtalb/more-upload-stats/blob/master/LICENSE

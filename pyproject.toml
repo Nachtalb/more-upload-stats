@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "upload_stats"
-version = "2.2.1.dev0"
+version = "3.0.0a0"
 description = "More detailed upload statistics for Nicotine+"
 authors = ["Nachtalb <na@nachtalb.io>"]
 license = "MIT"
@@ -40,8 +40,26 @@ python_version = "3.9"
 show_error_codes = true
 pretty = true
 strict = true
-exclude = [".*/core/.*"]
 
 [[tool.mypy.overrides]]
 module = "pynicotine.*"
 ignore_missing_imports = true
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.4.7"
+furo = "^2024.7.18"
+furo-sphinx-search = { git = "https://github.com/harshil21/furo-sphinx-search" }
+sphinx-paramlinks = "^0.6.0"
+sphinx-copybutton = "^0.5.2"
+sphinx-inline-tabs = "^2023.4.21"
+sphinxcontrib-mermaid = "^0.9.2"
+enum-tools = { extras = ["sphinx"], version = "^0.12.0" }
+
+
+[tool.poetry.scripts]
+build-docs = "scripts:build_docs"
+open-docs = "scripts:open_docs"
+check = "scripts:check"
+build-changelog = "scripts:build_changelog"
+release = "scripts:release"
+change-version = "scripts:change_version"

@@ -1,16 +1,21 @@
-import os
+"""This module contins utility functions."""
+
 from mimetypes import guess_type
 from pathlib import Path
 from typing import List, Union
 
-from .core.utils import BASE_PATH
-
-BUILD_PATH = BASE_PATH / "build"
-HTML_PATH = BASE_PATH / "html"
-REL_HTML_PATH = os.path.relpath(HTML_PATH, BUILD_PATH)
+__all__ = ["create_m3u"]
 
 
 def create_m3u(title: str, files: List[str], out_file: Union[str, Path], max_files: int = -1) -> None:
+    """Create an M3U playlist file with the given files.
+
+    Args:
+        title (:obj:`str`): Title for the playlist.
+        files (:obj:`List` of :obj:`str`): List of files to add to the playlist.
+        out_file (:obj:`str` | :obj:`Path`): Output file path.
+        max_files (:obj:`int`, optional): Maximum number of files to add to the playlist. Default is -1 (all files).
+    """
     m3u = f"#EXTM3U\n#EXTENC: UTF-8\n#PLAYLIST: {title}\n"
     total = 0
     for file in files:
