@@ -59,15 +59,15 @@ preview_and_confirm_bump() {
     fi
 }
 
-# Function to update PLUGINFILE
+# Function to update PLUGININFO
 update_pluginfile() {
     local new_version="$1"
-    if [ -f "PLUGINFILE" ]; then
-        print_color "$BLUE_BG" "INFO:" "Updating PLUGINFILE..."
-        sed -i "s/Version=\".*\"/Version=\"$new_version\"/" PLUGINFILE
-        print_color "$GREEN_BG" "SUCCESS:" "PLUGINFILE updated."
+    if [ -f "PLUGININFO" ]; then
+        print_color "$BLUE_BG" "INFO:" "Updating PLUGININFO..."
+        sed -i "s/Version=\".*\"/Version=\"$new_version\"/" PLUGININFO
+        print_color "$GREEN_BG" "SUCCESS:" "PLUGININFO updated."
     else
-        print_color "$MAGENTA_BG" "SKIP:" "PLUGINFILE not found. Skipping PLUGINFILE update."
+        print_color "$MAGENTA_BG" "SKIP:" "PLUGININFO not found. Skipping PLUGININFO update."
     fi
 }
 
@@ -83,9 +83,9 @@ show_and_commit_changes() {
         git_add_command="$git_add_command CHANGELOG.rst"
     fi
 
-    if [ -f "PLUGINFILE" ]; then
-        git_diff_command="$git_diff_command PLUGINFILE"
-        git_add_command="$git_add_command PLUGINFILE"
+    if [ -f "PLUGININFO" ]; then
+        git_diff_command="$git_diff_command PLUGININFO"
+        git_add_command="$git_add_command PLUGININFO"
     fi
 
     $git_diff_command

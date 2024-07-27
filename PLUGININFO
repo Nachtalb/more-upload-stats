@@ -1,4 +1,4 @@
-Version="3.0.0a0"
+Version="3.0.0"
 Authors=['Nachtalb']
 Name="Upload Statistics"
 Description="Collect more detailed upload statistics.\n\n## Info ##\n\n⚠ No data previous to enabling this plugin will be available.\n⚠ Some data in the statistics may be hidden to not create an unnecessarily huge page. You can disable this by disabling auto thresholding in the preferences and setting the manual thresholds to 0.\n\n\n## Usage ##\n\n- Type ``/up-open`` into a chat message and hit enter.\n\n- Use ``/up-reset`` to reset the statistics (a backup will be created beforhand).\n\n- Use ``/help`` to get more information about other commands.\n\n\n## Credit ##\n\nAuthor: https://github.com/Nachtalb\nSource: https://github.com/Nachtalb/more-upload-stats\n"
