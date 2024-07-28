@@ -127,12 +127,36 @@ class Plugin(BasePlugin):
             self.save_stats()
             return
         except json.JSONDecodeError:
-            self.log.error(f'Could not parse statistics file "{self.config.stats_file}".')
+            self.log.exception(f'Could not parse statistics file "{self.config.stats_file}".')
             self.window(
-                f'Could not parse statistics file "{self.config.stats_file}". Use /up-restore to restor the latest backup or /up-reset to reset the statistics.',
-                title="Error loading statistics",
+                dedent(
+                    f"""
+                Corrupted statistics file "{self.config.stats_file}".
+
+                Use /up-restore to restor the latest backup or /up-reset to reset the statistics.
+
+                If the error persists, please contact create an issue on GitHub, with the text in the console.
+                https://github.com/Nachtalb/more-upload-stats/issues
+                """
+                ),
+                title="Corrupted statistics file",
             )
             self.pause_jobs()
+        except Exception as e:
+            self.log.exception(f'Could not load statistics from "{self.config.stats_file}": {e}')
+            self.window(
+                dedent(
+                    f"""
+                Could not load statistics from "{self.config.stats_file}".
+
+                Use /up-restore to restor the latest backup or /up-reset to reset the statistics.
+
+                If the error persists, please contact create an issue on GitHub, with the text in the console.
+                https://github.com/Nachtalb/more-upload-stats/issues
+                """
+                ),
+                title="Error loading statistics",
+            )
             return
 
     def pause_jobs(self) -> None:
