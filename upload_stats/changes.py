@@ -16,6 +16,9 @@ However, sometimes changes are not documented in the source code, but are still 
 enough to be included in the changelog. For example, changes to the build system, or
 changes to the documentation build process. These changes are documented in this file.
 
+.. versionchanged:: 3.1.1 Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.3.5`
+    Adding support and fixing issues with Nicotine+ version lower than 3.3.0.
+
 .. versionchanged:: 3.1.0 Updated :external+npc:doc:`npc <index>` to version
     :external+npc:ref:`0.3.4` Fixing log level changes via settings not being
     applied during runtime.
