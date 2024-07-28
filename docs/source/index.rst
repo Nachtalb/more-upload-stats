@@ -19,6 +19,9 @@ in a convinient web interface using the ``/up-stats`` command.
 Additionally to the webpage it also creates a playlist with the top most
 downloaded files. This playlist can be opened with the ``/up-play`` command.
 
+You can use ``/help`` or ``/up-help`` on N+ versions below 3.3.0 to get a
+list of all available commands.
+
 .. image:: _static/webpage.png
     :alt: Webpage
     :align: center

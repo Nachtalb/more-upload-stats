@@ -47,6 +47,7 @@ in any chat window.
 - ``/up-open-playlist`` Open a playlist of the top 25 uploaded music pieces.
 
 There are many more commands available, you can find them by typing ``/help``.
+Or ``/up-help`` on N+ versions below 3.3.0.
 
 
 Contributing

@@ -19,6 +19,9 @@ changes to the documentation build process. These changes are documented in this
 .. versionchanged:: 3.1.1 Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.3.5`
     Adding support and fixing issues with Nicotine+ version lower than 3.3.0.
 
+.. versionadded:: 3.1.1 Added ``/up-help`` command through :external+npc:ref:`0.3.5`
+    which adds a help command like ``/help`` but for N+ versions lower than 3.3.0.
+
 .. versionchanged:: 3.1.0 Updated :external+npc:doc:`npc <index>` to version
     :external+npc:ref:`0.3.4` Fixing log level changes via settings not being
     applied during runtime.
