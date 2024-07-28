@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "upload_stats"
-version = "3.1.1"
+version = "3.1.2a0"
 description = "More detailed upload statistics for Nicotine+"
 authors = ["Nachtalb <na@nachtalb.io>"]
 license = "MIT"
@@ -44,6 +44,7 @@ strict = true
 [[tool.mypy.overrides]]
 module = "pynicotine.*"
 ignore_missing_imports = true
+
 
 
 
