@@ -1,34 +1,61 @@
-name: zip-n-release
-on:
-  push:
-    tags:
-      - "v*.*.*"
+name: zip-and-conditional-release
+
+on: [push]
+
 jobs:
   zip:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ${{ env.GITHUB_REF }}
           path: upload_stats
           submodules: recursive
-      - name: zip
+
+      - name: Zip
         uses: thedoctor0/zip-release@master
         with:
-          filename: 'upload_stats.zip'
-          path: 'upload_stats'
-          exclusions: >-
-            upload_stats/*.git*
-            upload_stats/.gitgub
-            upload_stats/.gitignore
-            upload_stats/.flake8
+          filename: "upload_stats.zip"
+          path: "upload_stats"
+          exclusions: |
+            upload_stats/.*
             upload_stats/DESCRIPTION
-            upload_stats/releaser
-            upload_stats/_config.yml
-            upload_stats/upload_stats/core/*.git*
-      - name: Release
+            upload_stats/*.sh
+            upload_stats/*.toml
+            upload_stats/generate_changelog.py
+            upload_stats/scripts.py
+            upload_stats/*.lock
+            upload_stats/__pycache__/**
+            upload_stats/.*/**
+            upload_stats/docs/**
+            upload_stats/upload_stats/npc/.*
+            upload_stats/upload_stats/npc/*.toml
+            upload_stats/upload_stats/npc/*.sh
+            upload_stats/upload_stats/npc/*.lock
+            upload_stats/upload_stats/npc/__pycache__/**
+            upload_stats/upload_stats/npc/.*/**
+            upload_stats/upload_stats/npc/docs/**
+            upload_stats/upload_stats/npc/generate_changelog.py
+            upload_stats/upload_stats/npc/scripts.py
+
+      - name: Upload zip as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: upload_stats
+          path: upload_stats.zip
+
+  release:
+    needs: zip
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download zip artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: upload_stats
+
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: 'upload_stats.zip'
+          files: "upload_stats.zip"
           draft: true
