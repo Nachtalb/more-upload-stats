@@ -120,7 +120,7 @@ class Plugin(BasePlugin):
         """Load the statistics from a file"""
         self.log.info(f'Loading statistics from "{self.config.stats_file}"')
         try:
-            stats = json.loads(self.config.stats_file.read_text())
+            stats = json.loads(self.config.stats_file.read_text(encoding="utf-8"))
             self.stats.update(stats)
         except FileNotFoundError:
             self.log.warning(f'Statistics file does not exist yet. Creating "{self.config.stats_file}"')
@@ -153,7 +153,7 @@ class Plugin(BasePlugin):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.touch()
             self.log.debug(f'Created missing file "{path}"')
-        path.write_text(json.dumps(self.stats))
+        path.write_text(json.dumps(self.stats, ensure_ascii=False), encoding="utf-8")
         self.log.debug(f'Saved statistics to "{path}"')
 
     @command
@@ -303,7 +303,7 @@ class Plugin(BasePlugin):
 
         # Restore backup
         try:
-            self.stats = json.loads(file.read_text())
+            self.stats = json.loads(file.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             self.log.error(f'Could not parse backup file "{file}"')
             self.window(f'Could not parse backup file "{file}"', title="Error")
@@ -372,7 +372,7 @@ class Plugin(BasePlugin):
             self.config.stats_html_file.parent.mkdir(parents=True, exist_ok=True)
             self.config.stats_html_file.touch()
 
-        self.config.stats_html_file.write_text(self.build_html())
+        self.config.stats_html_file.write_text(self.build_html(), encoding="utf-8")
         self.log.info(f'Statistics page generated and saved to "{self.config.stats_html_file}"')
 
     def rebuild_playlist(self, total: int = 25) -> None:
@@ -399,7 +399,7 @@ class Plugin(BasePlugin):
             :obj:`str`: HTML page
         """
         self.log.debug("Building statistics page")
-        template = (HTML_PATH / "template.html").read_text()
+        template = (HTML_PATH / "template.html").read_text(encoding="utf-8")
 
         info: dict[str, Any] = {
             "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
