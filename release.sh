@@ -75,6 +75,7 @@ update_pluginfile() {
 show_and_commit_changes() {
     local flag="$1"
     print_color "$CYAN_BG" "DIFF:" "Showing changes:"
+    git_diff_staged_command="git --no-pager diff --staged"
     git_diff_command="git --no-pager diff pyproject.toml"
     git_add_command="git add pyproject.toml"
 
@@ -88,6 +89,7 @@ show_and_commit_changes() {
         git_add_command="$git_add_command PLUGININFO"
     fi
 
+    $git_diff_staged_command
     $git_diff_command
 
     if get_confirmation "Do you want to commit these changes?"; then
