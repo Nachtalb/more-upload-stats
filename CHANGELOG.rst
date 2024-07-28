@@ -1,6 +1,13 @@
 Changelog
 =========
 
+3.1.1
+-----
+
+* Changed: [:mod:`upload_stats.changes`] Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.3.5` Adding support and fixing issues with Nicotine+ version lower than 3.3.0.
+* Added: [:mod:`upload_stats.changes`] Added ``/up-help`` command through :external+npc:ref:`0.3.5` which adds a help command like ``/help`` but for N+ versions lower than 3.3.0.
+* Changed: [:func:`upload_stats.html.tag`] Prefix arguments with _ to avoid conflicts with html attributes. Fixing the <meta http-equiv="refresh" content="..." /> tag issue.
+
 3.1.0
 -----
 
