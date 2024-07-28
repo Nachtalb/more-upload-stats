@@ -16,8 +16,13 @@ However, sometimes changes are not documented in the source code, but are still 
 enough to be included in the changelog. For example, changes to the build system, or
 changes to the documentation build process. These changes are documented in this file.
 
+.. versionchanged:: 3.1.0 Updated :external+npc:doc:`npc <index>` to version
+    :external+npc:ref:`0.3.4` Fixing log level changes via settings not being
+    applied during runtime.
+
 .. versionchanged:: 3.0.0 Implement new `Nicotine+ Plugin Core <https://naa.gg/npc>`_
     developed by yours truly. This is a major change that will allow for more
     flexibility and customization in the future. It may not be 100% stable yet, but
     it's a good start.
+
 """
