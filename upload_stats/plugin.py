@@ -108,24 +108,31 @@ class Plugin(BasePlugin):
             delay=lambda: self.config.build_interval * 60,
             update=self.rebuild_stats_output,
         )
-        self.auto_builder.start()
         self.auto_backup = PeriodicJob(
             name="AutoBuilder",
             delay=lambda: self.config.backup_interval * 3600,
             update=self.automatic_backup,
         )
-        self.auto_backup.start()
 
-    def load_stats(self) -> None:
-        """Load the statistics from a file"""
+        if self.load_stats():
+            self.auto_builder.start()
+            self.auto_backup.start()
+
+    def load_stats(self) -> bool:
+        """Load the statistics from a file
+
+        Returns:
+            :obj:`bool`: True if the statistics were loaded successfully, False otherwise.
+        """
         self.log.info(f'Loading statistics from "{self.config.stats_file}"')
         try:
-            stats = json.loads(self.config.stats_file.read_text(encoding="utf-8"))
-            self.stats.update(stats)
-        except FileNotFoundError:
-            self.log.warning(f'Statistics file does not exist yet. Creating "{self.config.stats_file}"')
-            self.save_stats()
-            return
+            if self.config.stats_file.exists():
+                stats = json.loads(self.config.stats_file.read_text(encoding="utf-8"))
+                self.stats.update(stats)
+            else:
+                self.log.warning(f'Statistics file does not exist yet. Creating "{self.config.stats_file}"')
+                self.save_stats()
+            return True
         except json.JSONDecodeError:
             self.log.exception(f'Could not parse statistics file "{self.config.stats_file}".')
             self.window(
@@ -141,7 +148,6 @@ class Plugin(BasePlugin):
                 ),
                 title="Corrupted statistics file",
             )
-            self.pause_jobs()
         except Exception as e:
             self.log.exception(f'Could not load statistics from "{self.config.stats_file}": {e}')
             self.window(
@@ -157,13 +163,15 @@ class Plugin(BasePlugin):
                 ),
                 title="Error loading statistics",
             )
-            return
+        return False
 
     def pause_jobs(self) -> None:
         """Pause all jobs"""
         self.log.debug("Pausing all jobs")
-        self.auto_builder.pause()
-        self.auto_backup.pause()
+        if hasattr(self, "auto_builder"):
+            self.auto_builder.pause()
+        if hasattr(self, "auto_backup"):
+            self.auto_backup.pause()
 
     def save_stats(self, path: Optional[Path] = None) -> None:
         """Save the statistics to a file
