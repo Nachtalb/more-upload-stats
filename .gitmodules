@@ -1,3 +1,3 @@
 [submodule "upload_stats/npc"]
-	path = upload_stats/npc
-	url = git@github.com:Nachtalb/nicotine-plugin-core
+    path = upload_stats/npc
+    url = https://github.com/Nachtalb/nicotine-plugin-core.git

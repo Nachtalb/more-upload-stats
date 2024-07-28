@@ -5,6 +5,9 @@ build:
   tools:
     python: "3.12"
   jobs:
+    pre_build:
+      # Clone submodules
+      - git submodule update --init --recursive
     post_create_environment:
       # Install poetry
       - python -m pip install poetry
