@@ -25,7 +25,7 @@ from typing import Any, Callable, List
 __all__ = ["tag", "readable_size", "id_string", "readable_size_html", "abbr", "a", "li", "mark", "small", "span"]
 
 
-def tag(name: str, content: str = "", **attributes: Any) -> str:
+def tag(_name: str, _content: str = "", **attributes: Any) -> str:
     """Create an HTML tag with the given content and attributes
 
     Example:
@@ -35,26 +35,34 @@ def tag(name: str, content: str = "", **attributes: Any) -> str:
             print(tag("a", "Link", href="https://example.com"))
             # Output: <a href="https://example.com">Link</a>
 
+    Note:
+        The _ in front of the argument names is to avoid conflicts with html attributes.
+
+    .. versionchanged:: 3.1.1 Prefix arguments with _ to avoid conflicts with
+        html attributes. Fixing the <meta http-equiv="refresh" content="..." /> tag issue.
+
     Args:
-        name (:obj:`str`): Tag name
-        content (:obj:`str`, optional): Content of the tag. Default is an empty string.
+        _name (:obj:`str`): Tag name or a space-separated list of tag names to
+            create nested tags. The inner most one will receive the content
+            and attributes.
+        _content (:obj:`str`, optional): Content of the tag. Default is an empty string.
         **attributes: Attributes for the tag
 
     Returns:
         :obj:`str`: HTML tag
     """
-    tags = name.split()
+    tags = _name.split()
     if (tooltip := attributes.get("data_tooltip")) and "title" not in attributes:
         attributes["title"] = tooltip
     if len(tags) > 1:
-        tags[-1] = tag(tags[-1], content, **attributes)
+        tags[-1] = tag(tags[-1], _content, **attributes)
         return reduce(lambda c, o: tag(o, c), tags[::-1])
 
     attrs = " ".join(map(lambda i: f'{i[0].replace("_", "-")}="{i[1]}"', attributes.items()))
-    return f"<{name} {attrs}>{content}</{name}>"
+    return f"<{_name} {attrs}>{_content}</{_name}>"
 
 
-def tagger(name: str, required_attributes: List[str] = []) -> Callable[..., str]:
+def tagger(_name: str, required_attributes: List[str] = []) -> Callable[..., str]:
     """Create an alias for a tag
 
     Example:
@@ -76,23 +84,23 @@ def tagger(name: str, required_attributes: List[str] = []) -> Callable[..., str]
 
     required_attributes_doc = "\n    ".join([f":obj:`str`: {attr}" for attr in required_attributes])
 
-    def wrapper(content: str = "", **attributes: Any) -> str:
-        f"""Create a {name} tag <{name}...>...</{name}>
+    def wrapper(_content: str = "", **attributes: Any) -> str:
+        f"""Create a {_name} tag <{_name}...>...</{_name}>
 
         Args:
-            content (:obj:`str`, optional): Content of the tag. Default is an empty string.
+            _content (:obj:`str`, optional): Content of the tag. Default is an empty string.
             {required_attributes_doc}
             **attributes: Attributes for the tag
 
         Returns:
-            :obj:`str`: {name} tag
+            :obj:`str`: {_name} tag
 
         Raises:
             :obj:`ValueError`: If any required attributes are missing
         """
         if not all(attr in attributes for attr in required_attributes):
             raise ValueError(f"Missing required attributes: {', '.join(required_attributes)}")
-        return tag(name, content, **attributes)
+        return tag(_name, _content, **attributes)
 
     return wrapper
 
