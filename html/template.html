@@ -1,127 +1,160 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Nicotine+ - Upload Statistics</title>
-  <meta name="description" content="Nicotine+ Upload Statistics">
-  <meta name="author" content="Nachtalb - https://github.com/Nachtalb">
+  <head>
+    <meta charset="utf-8" />
+    <title>Nicotine+ - Upload Statistics</title>
+    <meta name="description" content="Nicotine+ Upload Statistics" />
+    <meta name="author" content="Nachtalb - https://github.com/Nachtalb" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  {head}
+    {head}
 
-  <link rel="stylesheet" href="{BASE}css/normalize.css">
-  <link rel="stylesheet" href="{BASE}css/skeleton.css">
-  <link rel="stylesheet" href="{BASE}css/main.css">
+    <link rel="stylesheet" href="{BASE}css/normalize.css" />
+    <link rel="stylesheet" href="{BASE}css/skeleton.css" />
+    <link rel="stylesheet" href="{BASE}css/main.css" />
 
-  <!-- <link rel="icon" type="image/png" href="{BASE}images/favicon.png"> -->
-  {icons}
-</head>
-<body>
-  <input type="checkbox" class="hidden" {DARK_THEME} name="theme" id="theme">
-  <div class="wrapper">
-  <div class="container">
-    <div class="row">
-      <div class="column" style="margin-top: 5%">
-        <h1 id="top">
-          Upload Statistics <small>{date}</small>
-          <label class='icon-contrast' title='Change Theme' for="theme"></label>
-        </h1>
-        {update}
-        <p>Go to <a href="#TopStats">Top</a> | <a href='#Summary'>Summary</a> | <a href='#UserStats'>User Statistics</a> | <a href='#FileStats'>File Statistics</a></p>
-
-        <p>Download JSON data: {stats_link} | Download top #25 playlist: {playlist_file}</p>
-
-        <h2 id="TopStats">Top</h2>
+    <!-- <link rel="icon" type="image/png" href="{BASE}images/favicon.png"> -->
+    {icons}
+  </head>
+  <body>
+    <input type="checkbox" class="hidden" {DARK_THEME} name="theme" id="theme" />
+    <div class="wrapper">
+      <div class="container">
         <div class="row">
-          <div class="column one-half">
-            <div class="leaderboard">
-              <h3>
-                <span class="icon-trophy"></span>
-                User High Scores
-              </h3>
-              <ol>
-                {userranking}
-              </ol>
+          <div class="column" style="margin-top: 5%">
+            <h1 id="top">
+              Upload Statistics <small>{date}</small>
+              <label class="icon-contrast" title="Change Theme" for="theme"></label>
+            </h1>
+            {update}
+            <p>
+              Go to <a href="#TopStats">Top</a> | <a href="#Summary">Summary</a> |
+              <a href="#UserStats">User Statistics</a> | <a href="#FileStats">File Statistics</a>
+            </p>
+
+            <p>Download JSON data: {stats_link} | Download top #25 playlist: {playlist_file}</p>
+
+            <h2 id="TopStats">Top</h2>
+            <div class="row">
+              <div class="column one-half">
+                <div class="leaderboard">
+                  <h3>
+                    <span class="icon-trophy"></span>
+                    User High Scores
+                  </h3>
+                  <ol>
+                    {userranking}
+                  </ol>
+                </div>
+              </div>
+              <div class="column one-half">
+                <div class="leaderboard">
+                  <h3>
+                    <span class="icon-trophy"></span>
+                    File High Scores
+                  </h3>
+                  <ol>
+                    {fileranking}
+                  </ol>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="column one-half">
-            <div class="leaderboard">
-              <h3>
-                <span class="icon-trophy"></span>
-                File High Scores
-              </h3>
-              <ol>
-                {fileranking}
-              </ol>
+
+            <div class="row">
+              <div class="column one-half">
+                <h2 id="Summary">Summary</h2>
+                {summary}
+              </div>
+              <div class="column one-half">
+                <h2 id="PerDay">Per Day</h2>
+                <ul class="chart">
+                  <li class="bar" style="min-width: {day_0_p}%">
+                    <span class="total">{day_0}</span> <span class="day">Monday</span>
+                  </li>
+                  <li class="bar" style="min-width: {day_1_p}%">
+                    <span class="total">{day_1}</span> <span class="day">Tuesday</span>
+                  </li>
+                  <li class="bar" style="min-width: {day_2_p}%">
+                    <span class="total">{day_2}</span> <span class="day">Wednesday</span>
+                  </li>
+                  <li class="bar" style="min-width: {day_3_p}%">
+                    <span class="total">{day_3}</span> <span class="day">Thursday</span>
+                  </li>
+                  <li class="bar" style="min-width: {day_4_p}%">
+                    <span class="total">{day_4}</span> <span class="day">Friday</span>
+                  </li>
+                  <li class="bar" style="min-width: {day_5_p}%">
+                    <span class="total">{day_5}</span> <span class="day">Saturday</span>
+                  </li>
+                  <li class="bar" style="min-width: {day_6_p}%">
+                    <span class="total">{day_6}</span> <span class="day">Sunday</span>
+                  </li>
+                </ul>
+              </div>
             </div>
+
+            <h2 id="UserStats">User Statistics</h2>
+            <p>
+              Users who downloaded less or equal to {user_threshold} files are hidden. You can change this in the plugin
+              settings.
+            </p>
+            <table class="sortable">
+              <tr>
+                <th>User</th>
+                <th>Total Files</th>
+                <th>Total Bytes</th>
+                <th>Last File</th>
+              </tr>
+              {userstats}
+            </table>
+            <br />
+
+            <h2 id="FileStats">File Statistics</h2>
+            <p>
+              Files which were uploaded less or equal to {file_threshold} times are hidden. You can change this in the
+              plugin settings.
+            </p>
+            <table class="sortable">
+              <tr>
+                <th>File</th>
+                <th>Total Uploads</th>
+                <th>Total Bytes</th>
+                <th>File Size</th>
+                <th>Last User</th>
+              </tr>
+              {filestats}
+            </table>
+
+            <p>
+              Go to <a href="#top">Top of page</a> | <a href="#TopStats">Top</a> | <a href="#Summary">Summary</a> |
+              <a href="#UserStats">User Statistics</a> | <a href="#FileStats">File Statistics</a>
+            </p>
+
+            <hr />
+
+            <p>
+              Author: <a target="_blank" href="https://github.com/Nachtalb">Nachtalb</a><br />
+              Source: <a target="_blank" href="https://github.com/Nachtalb/more-upload-stats">Upload Statistics</a>
+            </p>
+            <p>
+              <small>
+                Created with:
+                <a href="http://getskeleton.com/" target="_blank">Skeleton</a> |
+                <a href="https://www.kryogenix.org/code/browser/sorttable/" target="_blank">sorttable</a>
+                <br />
+                Icons made by <a href="https://www.flaticon.com/authors/smartline" title="Smartline">Smartline</a> from
+                <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+              </small>
+            </p>
           </div>
         </div>
-
-        <div class="row">
-          <div class="column one-half">
-            <h2 id="Summary">Summary</h2>
-            {summary}
-          </div>
-          <div class="column one-half">
-            <h2 id="PerDay">Per Day</h2>
-            <ul class="chart">
-              <li class="bar" style="min-width: {day_0_p}%"><span class="total">{day_0}</span> <span class="day">Monday</span></li>
-              <li class="bar" style="min-width: {day_1_p}%"><span class="total">{day_1}</span> <span class="day">Tuesday</span></li>
-              <li class="bar" style="min-width: {day_2_p}%"><span class="total">{day_2}</span> <span class="day">Wednesday</span></li>
-              <li class="bar" style="min-width: {day_3_p}%"><span class="total">{day_3}</span> <span class="day">Thursday</span></li>
-              <li class="bar" style="min-width: {day_4_p}%"><span class="total">{day_4}</span> <span class="day">Friday</span></li>
-              <li class="bar" style="min-width: {day_5_p}%"><span class="total">{day_5}</span> <span class="day">Saturday</span></li>
-              <li class="bar" style="min-width: {day_6_p}%"><span class="total">{day_6}</span> <span class="day">Sunday</span></li>
-            </ul>
-          </div>
-        </div>
-
-        <h2 id="UserStats">User Statistics</h2>
-        <p>Users who downloaded less or equal to {user_threshold} files are hidden. You can change this in the plugin settings.</p>
-        <table class="sortable">
-          <tr>
-            <th>User</th>
-            <th>Total Files</th>
-            <th>Total Bytes</th>
-            <th>Last File</th>
-          </tr>
-          {userstats}
-        </table>
-        <br>
-
-        <h2 id="FileStats">File Statistics</h2>
-        <p>Files which were uploaded less or equal to {file_threshold} times are hidden. You can change this in the plugin settings.</p>
-        <table class="sortable">
-          <tr>
-            <th>File</th>
-            <th>Total Uploads</th>
-            <th>Total Bytes</th>
-            <th>File Size</th>
-            <th>Last User</th>
-          </tr>
-          {filestats}
-        </table>
-
-        <p>Go to <a href="#top">Top of page</a> | <a href="#TopStats">Top</a> | <a href='#Summary'>Summary</a> | <a href='#UserStats'>User Statistics</a> | <a href='#FileStats'>File Statistics</a></p>
-
-        <hr>
-
-        <p>Author: <a target="_blank" href="https://github.com/Nachtalb">Nachtalb</a><br/>
-           Source: <a target="_blank" href="https://github.com/Nachtalb/more-upload-stats">Upload Statistics</a></p>
-        <p><small>
-          Created with:
-          <a href="http://getskeleton.com/" target="_blank">Skeleton</a> |
-          <a href="https://www.kryogenix.org/code/browser/sorttable/" target="_blank">sorttable</a>
-          <br/>
-          Icons made by <a href="https://www.flaticon.com/authors/smartline" title="Smartline">Smartline</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
-        </small></p>
       </div>
     </div>
-  </div>
-  </div>
-  <script type="application/javascript" src="{BASE}js/sorttable.js"></script>
-  <!-- So we don't get duplicate tooltips but still get tooltips in case JS and CSS is disabled -->
-  <script type="application/javascript">document.querySelectorAll('[data-tooltip]').forEach((e) => e.title = '')</script>
-</body>
+    <script type="application/javascript" src="{BASE}js/sorttable.js"></script>
+    <!-- So we don't get duplicate tooltips but still get tooltips in case JS and CSS is disabled -->
+    <script type="application/javascript">
+      document.querySelectorAll("[data-tooltip]").forEach((e) => (e.title = ""));
+    </script>
+  </body>
 </html>
