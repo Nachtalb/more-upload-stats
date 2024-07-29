@@ -1,6 +1,11 @@
 Changelog
 =========
 
+3.1.3
+-----
+
+* Changed: [:mod:`upload_stats.changes`] Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.3.6` Fixing issues with windowed messages not being displayed on Nicotine+ versions lower than 3.3.0.
+
 3.1.2
 -----
 
