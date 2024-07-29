@@ -723,12 +723,14 @@ class Plugin(BasePlugin):
     def icons(self) -> str:
         """Create CSS for all icons in the images folder
 
+        .. versionchanged:: 3.1.2 Fixed path to images. Making icons work again.
+
         Returns:
             :obj:`str`: CSS for all icons
         """
         icons = ""
         for icon in (HTML_PATH / "images").glob("*.svg"):
-            icons += f'.icon-{icon.stem} {{ background-image: url("file:///{REL_HTML_PATH}/images/{icon.name}"); }}'
+            icons += f'.icon-{icon.stem} {{ background-image: url("{REL_HTML_PATH}/images/{icon.name}"); }}'
         return tag("style", icons.replace("\\", "/"))
 
     ### === Events ===
