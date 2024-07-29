@@ -22,7 +22,7 @@ from typing import Any, List, Optional, Tuple, TypedDict, Union
 
 from .defaults import BUILD_PATH, HTML_PATH, REL_HTML_PATH
 from .html import a, id_string, li, readable_size_html, small, span, tag
-from .npc import BasePlugin, Bool, File, Int, PeriodicJob, __version__, command, startfile
+from .npc import BasePlugin, Bool, File, Int, PeriodicJob, Settings, SettingsDiff, __version__, command, startfile
 from .utils import create_m3u
 
 __all__ = ["Plugin"]
@@ -797,3 +797,18 @@ class Plugin(BasePlugin):
             "total_bytes": user_info.get("total_bytes", 0) + stat.st_size if stat else 0,
         }
         self.save_stats()
+
+    def settings_changed(self, before: Settings, after: Settings, change: SettingsDiff) -> None:
+        """Event: Settings changed
+
+        .. versionadded:: 3.1.2 Rebuild page on theme change.
+
+        Args:
+            before (:obj:`npc.Settings`): Settings before the change
+            after (:obj:`npc.Settings`): Settings after the change
+            change (:obj:`npc.SettingsDiff`): Changed settings
+        """
+        super().settings_changed(before, after, change)
+
+        if "dark_theme" in change["after"]:
+            self.rebuild_page()
