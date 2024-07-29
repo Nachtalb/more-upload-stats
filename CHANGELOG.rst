@@ -1,6 +1,13 @@
 Changelog
 =========
 
+3.1.2
+-----
+
+* Changed: [:meth:`upload_stats.Plugin.build_html`] Added version of Plugin, Nicotine+ and Python to the page.
+* Changed: [:meth:`upload_stats.Plugin.icons`] Fixed path to images. Making icons work again.
+* Added: [:meth:`upload_stats.Plugin.settings_changed`] Rebuild page on theme change.
+
 3.1.1
 -----
 
