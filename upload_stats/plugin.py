@@ -11,6 +11,7 @@ the statistics page periodically.
 """
 
 import json
+import sys
 import webbrowser
 from base64 import urlsafe_b64encode
 from datetime import datetime
@@ -22,7 +23,19 @@ from typing import Any, List, Optional, Tuple, TypedDict, Union
 
 from .defaults import BUILD_PATH, HTML_PATH, REL_HTML_PATH
 from .html import a, id_string, li, readable_size_html, small, span, tag
-from .npc import BasePlugin, Bool, File, Int, PeriodicJob, Settings, SettingsDiff, __version__, command, startfile
+from .npc import (
+    NICOTINE_VERSION,
+    BasePlugin,
+    Bool,
+    File,
+    Int,
+    PeriodicJob,
+    Settings,
+    SettingsDiff,
+    __version__,
+    command,
+    startfile,
+)
 from .utils import create_m3u
 
 __all__ = ["Plugin"]
@@ -423,6 +436,8 @@ class Plugin(BasePlugin):
     def build_html(self, user_threshold: Optional[int] = None, file_threshold: Optional[int] = None) -> str:
         """Build the statistics page
 
+        .. versionchanged:: 3.1.2 Added version of Plugin, Nicotine+ and Python to the page.
+
         Args:
             user_threshold (:obj:`int`, optional): User threshold
             file_threshold (:obj:`int`, optional): File threshold
@@ -445,6 +460,9 @@ class Plugin(BasePlugin):
             "userranking": self.user_ranking(),
             "fileranking": self.file_ranking(),
             "icons": self.icons(),
+            "version": __version__,
+            "nicotine_version": NICOTINE_VERSION,
+            "python_version": sys.version.split()[0],
         }
 
         if self.config.auto_refresh and user_threshold is file_threshold is None:
