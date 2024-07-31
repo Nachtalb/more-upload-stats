@@ -95,8 +95,8 @@ class Plugin(BasePlugin):
         auto_refresh = Bool("Auto refresh statistics page", default=False)
 
         automatic_threshold = Bool("Automatic threshold", default=True)
-        file_threshold = Int("User threshold", default=2)
-        user_threshold = Int("File threshold", default=5)
+        file_threshold = Int("File threshold", default=2)
+        user_threshold = Int("User threshold", default=5)
 
     stats = Stats({"file": {}, "user": {}, "day": [0, 0, 0, 0, 0, 0, 0]})
     empty_stats = stats.copy()
