@@ -84,8 +84,12 @@ class Plugin(BasePlugin):
         """
 
         stats_file = File("Path to statistics file", default=BUILD_PATH / "stats.json")
-        stats_html_file = File("Path to statistics HTML file", default=BUILD_PATH / "index.html")
-        playlist_file = File("Path to playlist file", default=BUILD_PATH / "playlist.m3u")
+        stats_html_file = File("Path to statistics webpage (HTML file)", default=BUILD_PATH / "index.html")
+        playlist_file = File(
+            "Path to playlist (M3U file)",
+            description="The playlist is built with the top 25 uploads.",
+            default=BUILD_PATH / "playlist.m3u",
+        )
 
         backup_folder = File("Path to backup folder", default=BUILD_PATH / "backups")
         backup_interval = Int("Auto backup every x hours", default=24)
@@ -94,9 +98,21 @@ class Plugin(BasePlugin):
         dark_theme = Bool("Dark Theme", default=True)
         auto_refresh = Bool("Auto refresh statistics page", default=False)
 
-        automatic_threshold = Bool("Automatic threshold", default=True)
-        file_threshold = Int("File threshold", default=2)
-        user_threshold = Int("User threshold", default=5)
+        automatic_threshold = Bool(
+            "Automatic threshold",
+            description="Automatically calculate the threshold based on the 25th percentile. Overrides the user and file threshold.",
+            default=True,
+        )
+        file_threshold = Int(
+            "File threshold",
+            description="Minimum number of uploads for a file to appear on statistics page.",
+            default=2,
+        )
+        user_threshold = Int(
+            "User threshold",
+            description="Minimum number of uploads for a user to appear on statistics page.",
+            default=5,
+        )
 
     stats = Stats({"file": {}, "user": {}, "day": [0, 0, 0, 0, 0, 0, 0]})
     empty_stats = stats.copy()
