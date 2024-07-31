@@ -1,6 +1,12 @@
 Changelog
 =========
 
+3.1.4
+-----
+
+* Changed: [:mod:`upload_stats.changes`] Add clarification for various settings.
+* Changed: [:mod:`upload_stats.changes`] Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.4.0`
+
 3.1.3
 -----
 

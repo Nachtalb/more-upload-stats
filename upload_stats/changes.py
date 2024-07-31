@@ -16,6 +16,10 @@ However, sometimes changes are not documented in the source code, but are still 
 enough to be included in the changelog. For example, changes to the build system, or
 changes to the documentation build process. These changes are documented in this file.
 
+.. versionchanged:: 3.1.4 Add clarification for various settings.
+
+.. versionchanged:: 3.1.4 Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.4.0`
+
 .. versionchanged:: 3.1.3 Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.3.6`
     Fixing issues with windowed messages not being displayed on Nicotine+ versions lower than 3.3.0.
 
