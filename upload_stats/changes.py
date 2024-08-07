@@ -16,6 +16,9 @@ However, sometimes changes are not documented in the source code, but are still 
 enough to be included in the changelog. For example, changes to the build system, or
 changes to the documentation build process. These changes are documented in this file.
 
+.. versionchanged:: 3.1.5 Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.4.1`
+    Fixing proper unloading of the plugin and thus the ``/up-reload`` command.
+
 .. versionchanged:: 3.1.4 Add clarification for various settings.
 
 .. versionchanged:: 3.1.4 Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.4.0`
