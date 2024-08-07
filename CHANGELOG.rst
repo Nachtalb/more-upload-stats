@@ -1,6 +1,11 @@
 Changelog
 =========
 
+3.1.5
+-----
+
+* Changed: [:mod:`upload_stats.changes`] Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.4.1` Fixing proper unloading of the plugin and thus the ``/up-reload`` command.
+
 3.1.4
 -----
 
