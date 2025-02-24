@@ -48,7 +48,6 @@ class Stats(TypedDict):
     user: dict[str, dict[str, Any]]
     day: list[int]
 
-
 class Plugin(BasePlugin):
     """Upload statistics plugin.
 
@@ -78,6 +77,7 @@ class Plugin(BasePlugin):
             build_interval (:obj:`int`): Rebuild interval
             dark_theme (:obj:`bool`): Dark theme
             auto_refresh (:obj:`bool`): Auto refresh
+            exclude_images (:obj:`bool`): Exclude images from stats (jpg, jpeg, gif, png, webp)
             automatic_threshold (:obj:`bool`): Automatic threshold
             file_threshold (:obj:`int`): File threshold
             user_threshold (:obj:`int`): User threshold
@@ -98,9 +98,12 @@ class Plugin(BasePlugin):
         dark_theme = Bool("Dark Theme", default=True)
         auto_refresh = Bool("Auto refresh statistics page", default=False)
 
+        exclude_images = Bool("Exclude images from stats (jpg, jpeg, gif, png, webp)", default=False)
+
         automatic_threshold = Bool(
             "Automatic threshold",
-            description="Automatically calculate the threshold based on the 25th percentile. Overrides the user and file threshold.",
+            description="Automatically calculate the threshold based on the 25th percentile. "
+                        "Overrides the user and file threshold.",
             default=True,
         )
         file_threshold = Int(
@@ -386,7 +389,7 @@ class Plugin(BasePlugin):
 
     @command("rebuild", parameters=["[user threshold]", "[file threshold]"])
     def rebuild_stats_output_cmd(
-        self, user_threshold: Optional[int] = None, file_threshold: Optional[int] = None
+            self, user_threshold: Optional[int] = None, file_threshold: Optional[int] = None
     ) -> None:
         """Rebuild the statistics page and playlist file
 
@@ -588,7 +591,8 @@ class Plugin(BasePlugin):
 
             # Get the 25th percentile
             uniq_totals = set(map(lambda i: i["total"], self.stats["user"].values()))
-            return sorted(uniq_totals)[int(len(uniq_totals) * 0.25)]  # type: ignore[no-any-return]  # Get the 25th percentile
+            return sorted(uniq_totals)[
+                int(len(uniq_totals) * 0.25)]  # type: ignore[no-any-return]  # Get the 25th percentile
         return self.config.user_threshold
 
     def user_stats(self, threshold: int = 0) -> str:
@@ -643,7 +647,8 @@ class Plugin(BasePlugin):
 
             # Get the 25th percentile
             uniq_totals = set(map(lambda i: i["total"], self.stats["file"].values()))
-            return sorted(uniq_totals)[int(len(uniq_totals) * 0.25)]  # type: ignore[no-any-return]  # Get the 25th percentile
+            return sorted(uniq_totals)[
+                int(len(uniq_totals) * 0.25)]  # type: ignore[no-any-return]  # Get the 25th percentile
         return self.config.file_threshold
 
     def file_stats(self, threshold: int = 0) -> str:
@@ -787,6 +792,7 @@ class Plugin(BasePlugin):
             virtual_path (:obj:`str`): Virtual path of the file
             real_path (:obj:`str`): Real path of the file
         """
+
         self.track_file_upload(user, virtual_path, real_path)
 
     def track_file_upload(self, user: str, virtual_path: str, real_path: str) -> None:
@@ -797,42 +803,48 @@ class Plugin(BasePlugin):
             virtual_path (:obj:`str`): Virtual path of the file
             real_path (:obj:`str`): Real path of the file
         """
-        self.log.info(f"Tracking file upload: {virtual_path} to {user} at {real_path}")
-        file_info = self.stats["file"].get(real_path, {})
-        user_info = self.stats["user"].get(user, {})
 
-        try:
-            stat = Path(real_path).stat()
-        except FileNotFoundError:
-            self.log.warning(f'File "{real_path}" not found')
-            stat = None
-        except Exception as e:
-            self.log.warning(f'Could not get file info for "{real_path}": {e}')
-            stat = None
+        if self.config.exclude_images and self.is_image_file(virtual_path):
+            self.log.info(f"Skipping file logging: {virtual_path}")
 
-        weekday = datetime.now().weekday()
+        elif not self.config.exclude_images or not self.is_image_file(virtual_path):
 
-        # Increment uploads per day counter
-        self.stats["day"][weekday] = self.stats["day"][weekday] + 1
+            self.log.info(f"Tracking file upload: {virtual_path} to {user} at {real_path}")
+            file_info = self.stats["file"].get(real_path, {})
+            user_info = self.stats["user"].get(user, {})
 
-        # Update file statistics
-        self.stats["file"][real_path] = {
-            "total": file_info.get("total", 0) + 1,
-            "virtual_path": virtual_path,
-            "last_user": user,
-            "last_modified": stat.st_mtime if stat else 0,
-            "file_size": stat.st_size if stat else 0,
-            "total_bytes": file_info.get("total_bytes", 0) + stat.st_size if stat else 0,
-        }
+            try:
+                stat = Path(real_path).stat()
+            except FileNotFoundError:
+                self.log.warning(f'File "{real_path}" not found')
+                stat = None
+            except Exception as e:
+                self.log.warning(f'Could not get file info for "{real_path}": {e}')
+                stat = None
 
-        # Update user statistics
-        self.stats["user"][user] = {
-            "total": user_info.get("total", 0) + 1,
-            "last_file": virtual_path,
-            "last_real_file": real_path,
-            "total_bytes": user_info.get("total_bytes", 0) + stat.st_size if stat else 0,
-        }
-        self.save_stats()
+            weekday = datetime.now().weekday()
+
+            # Increment uploads per day counter
+            self.stats["day"][weekday] = self.stats["day"][weekday] + 1
+
+            # Update file statistics
+            self.stats["file"][real_path] = {
+                "total": file_info.get("total", 0) + 1,
+                "virtual_path": virtual_path,
+                "last_user": user,
+                "last_modified": stat.st_mtime if stat else 0,
+                "file_size": stat.st_size if stat else 0,
+                "total_bytes": file_info.get("total_bytes", 0) + stat.st_size if stat else 0,
+            }
+
+            # Update user statistics
+            self.stats["user"][user] = {
+                "total": user_info.get("total", 0) + 1,
+                "last_file": virtual_path,
+                "last_real_file": real_path,
+                "total_bytes": user_info.get("total_bytes", 0) + stat.st_size if stat else 0,
+            }
+            self.save_stats()
 
     def settings_changed(self, before: Settings, after: Settings, change: SettingsDiff) -> None:
         """Event: Settings changed
@@ -848,3 +860,18 @@ class Plugin(BasePlugin):
 
         if "dark_theme" in change["after"]:
             self.rebuild_page()
+
+    def is_image_file(self, filename: str) -> bool:
+        """
+        Checks if a filename ends with an image extension: .jpg, .jpeg, .png, .gif or .webp (case-insensitive).
+
+        Args:
+            filename (str): The filename to check.
+
+        Returns:
+            bool: True if the filename has a valid image extension, False otherwise.
+        """
+        if not filename:
+            return False
+
+        return filename.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".webp"))
