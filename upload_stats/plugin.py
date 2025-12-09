@@ -141,7 +141,7 @@ class Plugin(BasePlugin):
             update=self.rebuild_stats_output,
         )
         self.auto_backup = PeriodicJob(
-            name="AutoBuilder",
+            name="AutoBackup",
             delay=lambda: self.config.backup_interval * 3600,
             update=self.automatic_backup,
         )
