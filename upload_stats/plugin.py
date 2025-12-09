@@ -10,10 +10,10 @@ the statistics page periodically.
 .. seealso:: :class:`npc.BasePlugin` for more information about the plugin class.
 """
 
+import gzip
 import json
 import sys
 import webbrowser
-import gzip
 from base64 import urlsafe_b64encode
 from datetime import datetime
 from pathlib import Path
@@ -268,7 +268,13 @@ class Plugin(BasePlugin):
         self.hard_reset()
 
     def delete_old_backups(self) -> None:
-        """Delete old backups"""
+        """Delete backups older than :attr:`upload_stats.Plugin.Config.backup_retention`
+
+        Note:
+
+            Existing `*.json` backups are not auto deleted to ensure the users looses no data.
+
+        """
         self.log.debug("Deleting old backups")
         for file in self.config.backup_folder.glob("stats*.gz"):
             if (datetime.now().second - file.stat().st_mtime) > (self.config.backup_retention * 24 * 60 * 60):
@@ -372,7 +378,7 @@ class Plugin(BasePlugin):
                     return
             self.log.info(f'Restoring backup "{file}"')
         else:
-            backups: List[Path] = list(self.config.backup_folder.glob("stats-*.json"))
+            backups: List[Path] = list(self.config.backup_folder.glob("stats-*.json*"))
             backups = sorted(backups, reverse=True, key=lambda i: i.stat().st_mtime)
             backups = [file for file in backups if file != new_backup]
 
@@ -386,7 +392,15 @@ class Plugin(BasePlugin):
 
         # Restore backup
         try:
-            self.stats = json.loads(file.read_text(encoding="utf-8"))
+            if file.suffix == ".gz":
+                with gzip.open(file, "rt", encoding="utf-8") as f:
+                    self.stats = json.loads(f.read())
+            elif file.suffix == ".json":
+                self.stats = json.loads(file.read_text(encoding="utf-8"))
+            else:
+                self.log.error(f'Unsupported backup file "{file}"')
+                self.window(f'Unsupported backup file "{file}"', title="Error")
+                return
         except json.JSONDecodeError:
             self.log.error(f'Could not parse backup file "{file}"')
             self.window(f'Could not parse backup file "{file}"', title="Error")
