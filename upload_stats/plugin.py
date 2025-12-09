@@ -793,10 +793,7 @@ class Plugin(BasePlugin):
 
     def pre_stop(self) -> None:
         """Stop all jobs before stopping the plugin"""
-        self.log.debug("Stopping all jobs")
         self.backup("stop")
-        self.auto_update.stop()
-        self.auto_builder.stop(False)
 
     def upload_finished_notification(self, user: str, virtual_path: str, real_path: str) -> None:
         """Event: Upload finished
