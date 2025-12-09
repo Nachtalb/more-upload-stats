@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: upload_stats
           submodules: recursive
@@ -39,7 +39,7 @@ jobs:
             upload_stats/upload_stats/npc/scripts.py
 
       - name: Upload zip as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: upload_stats
           path: upload_stats.zip
@@ -50,12 +50,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download zip artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: upload_stats
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: "upload_stats.zip"
           draft: true
