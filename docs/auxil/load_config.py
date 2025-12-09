@@ -1,5 +1,4 @@
-import configparser
-from ast import literal_eval
+import tomllib
 from datetime import date
 from pathlib import Path
 
@@ -14,14 +13,23 @@ CONFIG = {
 }
 
 pyproject = Path(__file__).parent.parent.parent / "pyproject.toml"
-config = configparser.ConfigParser()
-config.read(str(pyproject))
+
+with open(pyproject, "rb") as f:
+    toml_data = tomllib.load(f)
+
+# UV uses standard PEP 621 metadata located under the [project] key
+project_metadata = toml_data.get("project", {})
 
 for option in CONFIG:
-    if config.has_option("tool.poetry", option):
-        value = literal_eval(config.get("tool.poetry", option))
+    if option in project_metadata:
+        value = project_metadata[option]
 
-        if isinstance(value, list):
-            value = ", ".join(value)
+        # Handle 'authors' specifically because in PEP 621 it is a list of dicts:
+        # authors = [{ name = "Nachtalb", email = "..." }]
+        if option == "authors" and isinstance(value, list):
+            # Extract names and join them
+            value = ", ".join(
+                author.get("name", "") for author in value if isinstance(author, dict) and "name" in author
+            )
 
         CONFIG[option] = value

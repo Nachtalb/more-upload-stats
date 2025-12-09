@@ -150,6 +150,8 @@ def parse_docstring(
             if len(parts) == 2:
                 current_type = parts[0].split()[-1].lower()
                 version_parts = parts[1].strip().split(None, 1)
+                if not version_parts:
+                    print(f"Failed to parse version for {item_name}: {line} in {fully_qualified_name}")
                 current_version = version_parts[0]
                 if len(version_parts) > 1:
                     current_description = [version_parts[1]]

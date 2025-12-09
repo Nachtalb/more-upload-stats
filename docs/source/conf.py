@@ -48,7 +48,6 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_inline_tabs",
     "sphinxcontrib.mermaid",
-    "sphinx_search.extension",
 ]
 
 # Use intersphinx to reference the python builtin library docs

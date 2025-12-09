@@ -21,20 +21,56 @@ get_confirmation() {
     printf "%b%s%b %s" "$YELLOW_BG$BLACK" "$1" "$RESET" "[Y/n]: "
     read -r answer
     case "$answer" in
-        [Nn]*)
-            return 1
-            ;;
-        *)
-            return 0
-            ;;
+        [Nn]*) return 1 ;;
+        *) return 0 ;;
     esac
 }
+
+# --- UV HELPER FUNCTIONS ---
+
+# Get current version using uv/python one-liner
+get_current_version() {
+    # Uses tomli (fast read-only parser) to extract version reliably
+    uv run -q --with tomli python -c "import tomli; print(tomli.load(open('pyproject.toml', 'rb'))['project']['version'])"
+}
+
+# Perform version bump using native 'uv version'
+perform_bump() {
+    local rule="$1"
+    local dry_flag="${2:-}"
+    local uv_args=""
+
+    # Map poetry-style flags to uv --bump components
+    case "$rule" in
+        patch)      uv_args="--bump patch" ;;
+        minor)      uv_args="--bump minor" ;;
+        major)      uv_args="--bump major" ;;
+        prepatch)   uv_args="--bump patch --bump alpha" ;;
+        preminor)   uv_args="--bump minor --bump alpha" ;;
+        premajor)   uv_args="--bump major --bump alpha" ;;
+        prerelease) uv_args="--bump alpha" ;; # Assumes alpha cycle for generic prerelease
+        *)
+            print_color "$RED_BG" "ERROR:" "Unknown bump rule: $rule"
+            exit 1
+            ;;
+    esac
+
+    # Run uv version
+    # We allow it to sync/lock by default (standard behavior) unless you want --no-sync
+    if [ -n "$dry_flag" ]; then
+        uv version $uv_args $dry_flag
+    else
+        uv version $uv_args > /dev/null
+    fi
+}
+# ---------------------------
 
 # Function to generate changelog
 generate_changelog() {
     if [ -f "./generate_changelog.py" ]; then
         print_color "$BLUE_BG" "INFO:" "Generating changelog..."
-        if ./generate_changelog.py; then
+        # Run via uv to ensure dependencies are present
+        if uv run ./generate_changelog.py; then
             print_color "$GREEN_BG" "SUCCESS:" "Changelog generated successfully."
         else
             print_color "$RED_BG" "ERROR:" "Failed to generate changelog. Exiting."
@@ -47,10 +83,14 @@ generate_changelog() {
 
 # Function to preview version bump and get confirmation
 preview_and_confirm_bump() {
-    print_color "$BLUE_BG" "PREVIEW:" "Dry run of version bump with flag: $1"
-    poetry version --next-phase "$1" --dry-run
+    local rule="$1"
+    print_color "$BLUE_BG" "PREVIEW:" "Dry run of version bump with flag: $rule"
+
+    # Show the dry run output from uv
+    perform_bump "$rule" "--dry-run"
+
     if get_confirmation "Do you want to proceed with this version bump?"; then
-        poetry version --next-phase "$1"
+        perform_bump "$rule"
         print_color "$GREEN_BG" "SUCCESS:" "Version bumped."
         return 0
     else
@@ -59,15 +99,15 @@ preview_and_confirm_bump() {
     fi
 }
 
-# Function to update PLUGININFO
+# Function to update PLUGINFILE
 update_pluginfile() {
     local new_version="$1"
-    if [ -f "PLUGININFO" ]; then
-        print_color "$BLUE_BG" "INFO:" "Updating PLUGININFO..."
-        sed -i "s/Version=\".*\"/Version=\"$new_version\"/" PLUGININFO
-        print_color "$GREEN_BG" "SUCCESS:" "PLUGININFO updated."
+    if [ -f "PLUGINFILE" ]; then
+        print_color "$BLUE_BG" "INFO:" "Updating PLUGINFILE..."
+        sed -i "s/Version=\".*\"/Version=\"$new_version\"/" PLUGINFILE
+        print_color "$GREEN_BG" "SUCCESS:" "PLUGINFILE updated."
     else
-        print_color "$MAGENTA_BG" "SKIP:" "PLUGININFO not found. Skipping PLUGININFO update."
+        print_color "$MAGENTA_BG" "SKIP:" "PLUGINFILE not found. Skipping PLUGINFILE update."
     fi
 }
 
@@ -75,25 +115,25 @@ update_pluginfile() {
 show_and_commit_changes() {
     local flag="$1"
     print_color "$CYAN_BG" "DIFF:" "Showing changes:"
-    git_diff_staged_command="git --no-pager diff --staged"
-    git_diff_command="git --no-pager diff pyproject.toml"
-    git_add_command="git add pyproject.toml"
+
+    # Added uv.lock to diff/add since uv version updates it
+    git_diff_command="git --no-pager diff pyproject.toml uv.lock"
+    git_add_command="git add pyproject.toml uv.lock"
 
     if [ -f "CHANGELOG.rst" ]; then
         git_diff_command="$git_diff_command CHANGELOG.rst"
         git_add_command="$git_add_command CHANGELOG.rst"
     fi
 
-    if [ -f "PLUGININFO" ]; then
-        git_diff_command="$git_diff_command PLUGININFO"
-        git_add_command="$git_add_command PLUGININFO"
+    if [ -f "PLUGINFILE" ]; then
+        git_diff_command="$git_diff_command PLUGINFILE"
+        git_add_command="$git_add_command PLUGINFILE"
     fi
 
-    $git_diff_staged_command
     $git_diff_command
 
     if get_confirmation "Do you want to commit these changes?"; then
-        current_version=$(poetry version -s)
+        current_version=$(get_current_version)
         $git_add_command
         git commit -m "Bump version to $current_version and update changelog"
         case "$flag" in
@@ -131,14 +171,14 @@ main() {
     fi
 
     flag="${1#--}"
-    initial_version=$(poetry version -s)
+    initial_version=$(get_current_version)
 
     generate_changelog
 
     case "$flag" in
         patch|minor|major|prepatch|preminor|premajor|prerelease)
             if preview_and_confirm_bump "$flag"; then
-                update_pluginfile "$(poetry version -s)"
+                update_pluginfile "$(get_current_version)"
                 show_and_commit_changes "$flag"
                 push_changes_and_tags
             else
@@ -153,14 +193,14 @@ main() {
 
     print_color "$BLUE_BG" "INFO:" "Performing additional prepatch bump"
     if preview_and_confirm_bump prepatch; then
-        update_pluginfile "$(poetry version -s)"
+        update_pluginfile "$(get_current_version)"
         show_and_commit_changes "prepatch"
         push_changes_and_tags
     else
         exit 1
     fi
 
-    final_version=$(poetry version -s)
+    final_version=$(get_current_version)
     print_color "$GREEN_BG" "COMPLETE:" "Version bumped from $initial_version to $final_version"
 }
 
