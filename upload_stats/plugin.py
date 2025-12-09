@@ -170,31 +170,27 @@ class Plugin(BasePlugin):
         except json.JSONDecodeError:
             self.log.exception(f'Could not parse statistics file "{self.config.stats_file}".')
             self.window(
-                dedent(
-                    f"""
+                dedent(f"""
                 Corrupted statistics file "{self.config.stats_file}".
 
                 Use /up-restore to restor the latest backup or /up-reset to reset the statistics.
 
                 If the error persists, please contact create an issue on GitHub, with the text in the console.
                 https://github.com/Nachtalb/more-upload-stats/issues
-                """
-                ),
+                """),
                 title="Corrupted statistics file",
             )
         except Exception as e:
             self.log.exception(f'Could not load statistics from "{self.config.stats_file}": {e}')
             self.window(
-                dedent(
-                    f"""
+                dedent(f"""
                 Could not load statistics from "{self.config.stats_file}".
 
                 Use /up-restore to restor the latest backup or /up-reset to reset the statistics.
 
                 If the error persists, please contact create an issue on GitHub, with the text in the console.
                 https://github.com/Nachtalb/more-upload-stats/issues
-                """
-                ),
+                """),
                 title="Error loading statistics",
             )
         return False
@@ -236,8 +232,7 @@ class Plugin(BasePlugin):
         """Start the reset process"""
         self.log.warning("User requested a reset, asking for confirmation.")
         self.window(
-            dedent(
-                """
+            dedent("""
                 Are you sure you want to reset the statistics?
 
                 Before the reset is performed, a backup will be created.
@@ -245,8 +240,7 @@ class Plugin(BasePlugin):
 
                 Confirm the reset by using /up-reset-confirm
                 Abort the reset by using /up-reset-abort
-                """
-            ),
+                """),
             title="Reset Statistics",
         )
         self.reset_flag = True
