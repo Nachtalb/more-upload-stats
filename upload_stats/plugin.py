@@ -13,6 +13,7 @@ the statistics page periodically.
 import json
 import sys
 import webbrowser
+import gzip
 from base64 import urlsafe_b64encode
 from datetime import datetime
 from pathlib import Path
@@ -202,19 +203,28 @@ class Plugin(BasePlugin):
         if hasattr(self, "auto_backup"):
             self.auto_backup.pause()
 
-    def save_stats(self, path: Optional[Path] = None) -> None:
+    def save_stats(self, path: Optional[Path] = None, compressed: bool = False) -> None:
         """Save the statistics to a file
 
         Args:
             path (:obj:`pathlib.Path`, optional): Path to the file. Default is None.
         """
         path = path or self.config.stats_file
+        if compressed:
+            path = path.with_suffix(path.suffix + ".gz")
+
         self.log.debug(f'Saving statistics to "{path}"')
         if not path.parent.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.touch()
             self.log.debug(f'Created missing file "{path}"')
-        path.write_text(json.dumps(self.stats, ensure_ascii=False), encoding="utf-8")
+
+        content = json.dumps(self.stats, ensure_ascii=False).encode("utf-8")
+        if compressed:
+            with gzip.open(path, mode="wb") as gzip_file:
+                gzip_file.write(content)
+        else:
+            path.write_bytes(content)
         self.log.debug(f'Saved statistics to "{path}"')
 
     @command
@@ -266,7 +276,7 @@ class Plugin(BasePlugin):
         """
         self.log.info(f'Creating a backup for "{reason}"')
         file = self.config.backup_folder / (f"stats-{reason}-{datetime.now().strftime('%Y_%M_%d-%H_%M_%S')}.json")
-        self.save_stats(file)
+        self.save_stats(file, compressed=True)
         self.log.info(f'Created a backup at "{file}"')
         return file
 
