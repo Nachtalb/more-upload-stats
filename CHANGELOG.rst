@@ -1,6 +1,11 @@
 Changelog
 =========
 
+3.2.1
+-----
+
+* Changed: [:mod:`upload_stats.changes`] Fix accidentally restoring the backup before the restore -> nothing restored
+
 3.2.0
 -----
 
