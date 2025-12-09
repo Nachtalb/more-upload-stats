@@ -94,6 +94,8 @@ class Plugin(BasePlugin):
 
         backup_folder = File("Path to backup folder", default=BUILD_PATH / "backups")
         backup_interval = Int("Auto backup every x hours", default=24, minimum=1)
+        backup_retention = Int("How long to keep backups (in days)", default=30)
+
         build_interval = Int("Rebuild statistics page every x minutes", default=30, minimum=1)
 
         dark_theme = Bool("Dark Theme", default=True)
@@ -265,6 +267,14 @@ class Plugin(BasePlugin):
         self.backup("reset")
         self.hard_reset()
 
+    def delete_old_backups(self) -> None:
+        """Delete old backups"""
+        self.log.debug("Deleting old backups")
+        for file in self.config.backup_folder.glob("stats*.gz"):
+            if (datetime.now().second - file.stat().st_mtime) > (self.config.backup_retention * 24 * 60 * 60):
+                self.log.debug(f'Deleting old backup "{file}"')
+                file.unlink()
+
     def backup(self, reason: str) -> Path:
         """Create a backup of the statistics
 
@@ -293,6 +303,8 @@ class Plugin(BasePlugin):
         """Trigger an automatic backup"""
         self.log.info("Automatic backup triggered")
         self.backup("auto")
+        if self.config.backup_retention > 0:
+            self.delete_old_backups()
 
     @command(aliases=["stats"])
     def open(self) -> None:
