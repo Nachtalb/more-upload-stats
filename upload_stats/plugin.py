@@ -633,7 +633,7 @@ class Plugin(BasePlugin):
             filename = a(
                 Path(user_data["last_file"]).name,
                 href="#file-" + id_string(user_data["last_real_file"]),
-                data_tooltip=f'RP: {user_data["last_real_file"]}\nVP: {user_data["last_file"]}',
+                data_tooltip=f"RP: {user_data['last_real_file']}\nVP: {user_data['last_file']}",
                 data_tooltip_align="left",
             )
 
@@ -687,7 +687,7 @@ class Plugin(BasePlugin):
 
             name = a(
                 Path(file_path).name,
-                data_tooltip=f'RP: {file_path}\nVP: {file_data["virtual_path"]}',
+                data_tooltip=f"RP: {file_path}\nVP: {file_data['virtual_path']}",
                 href="file:///" + file_path,
                 target="_blank",
                 data_tooltip_align="left",
