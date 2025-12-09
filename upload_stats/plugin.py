@@ -360,9 +360,6 @@ class Plugin(BasePlugin):
         Args:
             file (:obj:`str`, optional): Backup file to restore. Default is None.
         """
-        # Backup current stats
-        new_backup = self.backup("restore")
-
         # Choose backup file
         if file:
             file = Path(file)
@@ -376,7 +373,6 @@ class Plugin(BasePlugin):
         else:
             backups: List[Path] = list(self.config.backup_folder.glob("stats-*.json*"))
             backups = sorted(backups, reverse=True, key=lambda i: i.stat().st_mtime)
-            backups = [file for file in backups if file != new_backup]
 
             if not backups:
                 self.log.error("No backups found")
@@ -385,6 +381,9 @@ class Plugin(BasePlugin):
 
             file = backups[0]
             self.log.info(f'Restoring backup "{file}"')
+
+        # Backup current stats
+        self.backup("restore")
 
         # Restore backup
         try:
