@@ -93,8 +93,8 @@ class Plugin(BasePlugin):
         )
 
         backup_folder = File("Path to backup folder", default=BUILD_PATH / "backups")
-        backup_interval = Int("Auto backup every x hours", default=24)
-        build_interval = Int("Rebuild statistics page every x minutes", default=30)
+        backup_interval = Int("Auto backup every x hours", default=24, minimum=1)
+        build_interval = Int("Rebuild statistics page every x minutes", default=30, minimum=1)
 
         dark_theme = Bool("Dark Theme", default=True)
         auto_refresh = Bool("Auto refresh statistics page", default=False)
