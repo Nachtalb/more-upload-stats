@@ -381,8 +381,8 @@ class Plugin(BasePlugin):
 
     def rebuild_stats_output(self) -> None:
         """Rebuild the statistics page and playlist file"""
-        self.rebuild_page()
         self.rebuild_playlist()
+        self.rebuild_page()
 
     @command("rebuild", parameters=["[user threshold]", "[file threshold]"])
     def rebuild_stats_output_cmd(
@@ -394,8 +394,8 @@ class Plugin(BasePlugin):
             user_threshold (:obj:`int`, optional): User threshold
             file_threshold (:obj:`int`, optional): File threshold
         """
-        self.rebuild_page(user_threshold, file_threshold)
         self.rebuild_playlist()
+        self.rebuild_page(user_threshold, file_threshold)
 
     @command("rebuild-page", parameters=["[user threshold]", "[file threshold]"])
     def rebuild_page_cmd(self, user_threshold: Optional[int] = None, file_threshold: Optional[int] = None) -> None:
