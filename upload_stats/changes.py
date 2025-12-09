@@ -16,6 +16,11 @@ However, sometimes changes are not documented in the source code, but are still 
 enough to be included in the changelog. For example, changes to the build system, or
 changes to the documentation build process. These changes are documented in this file.
 
+.. versionremoved:: 3.2.0 Drop support for python version lower than 3.11
+.. versionchanged:: 3.2.0 Save backups as compressed gzip to save on space.
+.. versionchanged:: 3.2.0 Fix issues building page due to missing playlist.
+.. versionchanged:: 3.2.0 Update :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.5.0`
+
 .. versionchanged:: 3.1.5 Updated :external+npc:doc:`npc <index>` to version :external+npc:ref:`0.4.1`
     Fixing proper unloading of the plugin and thus the ``/up-reload`` command.
 

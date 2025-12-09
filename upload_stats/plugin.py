@@ -61,6 +61,7 @@ class Plugin(BasePlugin):
         stats (:obj:`upload_stats.Stats`): Statistics data
         empty_stats (:obj:`upload_stats.Stats`): Empty statistics data
         auto_builder (:obj:`upload_stats.npc.PeriodicJob`): Auto builder job
+        auto_backup (:obj:`upload_stats.npc.PeriodicJob`): Auto backup job
     """
 
     class Config(BasePlugin.Config):
@@ -75,7 +76,8 @@ class Plugin(BasePlugin):
             stats_html_file (:obj:`pathlib.Path`): Path to statistics HTML file
             playlist_file (:obj:`pathlib.Path`): Path to playlist file
             backup_folder (:obj:`pathlib.Path`): Path to backup folder
-            backup_interval (:obj:`int`): Auto backup interval
+            backup_interval (:obj:`int`): Auto backup interval in hours
+            backup_retention (:obj:`int`): Backup retention time in days
             build_interval (:obj:`int`): Rebuild interval
             dark_theme (:obj:`bool`): Dark theme
             auto_refresh (:obj:`bool`): Auto refresh
